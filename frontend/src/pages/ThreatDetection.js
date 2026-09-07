@@ -33,13 +33,22 @@ const ThreatDetection = () => {
   const [error, setError] = useState(null);
   const [selectedThreat, setSelectedThreat] = useState(null);
 
-  const fetchThreats = useCallback(async () => {
+  const fetchThreats = useCallback(async (targetPage = page, targetSeverity = severity, targetSearch = search) => {
     try {
-      const res = await api.get('/threats', {
-        params: { page, limit: 15, severity, search }
-      });
-      setThreats(res.data.threats);
-      setTotal(res.data.total);
+      const params = {
+        page: targetPage,
+        limit: 15,
+      };
+      if (targetSeverity && targetSeverity.trim() && targetSeverity.toUpperCase() !== 'ALL') {
+        params.severity = targetSeverity.trim();
+      }
+      if (targetSearch && targetSearch.trim()) {
+        params.search = targetSearch.trim();
+      }
+
+      const res = await api.get('/threats', { params });
+      setThreats(res.data.threats || []);
+      setTotal(res.data.total !== undefined ? res.data.total : (res.data.threats ? res.data.threats.length : 0));
       setError(null);
     } catch (err) {
       console.error("Threats fetch error:", err);
@@ -50,13 +59,13 @@ const ThreatDetection = () => {
   }, [page, severity, search]);
 
   useEffect(() => {
-    fetchThreats();
-  }, [fetchThreats, refreshTrigger]);
+    fetchThreats(page, severity, search);
+  }, [fetchThreats, page, severity, search, refreshTrigger]);
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setPage(1);
-    fetchThreats();
+    fetchThreats(1, severity, search);
   };
 
   if (loading && threats.length === 0) {
@@ -125,7 +134,12 @@ const ThreatDetection = () => {
 
           <select
             value={severity}
-            onChange={(e) => { setSeverity(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              const newSev = e.target.value;
+              setSeverity(newSev);
+              setPage(1);
+              fetchThreats(1, newSev, search);
+            }}
             style={{ height: 34, fontSize: '0.8rem', minWidth: 140 }}
           >
             <option value="">All Severities</option>
@@ -194,7 +208,11 @@ const ThreatDetection = () => {
                   className="btn btn-secondary"
                   style={{ padding: '4px 10px', fontSize: '0.76rem' }}
                   disabled={page <= 1}
-                  onClick={() => setPage(p => p - 1)}
+                  onClick={() => {
+                    const newPage = page - 1;
+                    setPage(newPage);
+                    fetchThreats(newPage, severity, search);
+                  }}
                 >
                   Previous
                 </button>
@@ -202,7 +220,11 @@ const ThreatDetection = () => {
                   className="btn btn-secondary"
                   style={{ padding: '4px 10px', fontSize: '0.76rem' }}
                   disabled={page >= Math.ceil(total / 15)}
-                  onClick={() => setPage(p => p + 1)}
+                  onClick={() => {
+                    const newPage = page + 1;
+                    setPage(newPage);
+                    fetchThreats(newPage, severity, search);
+                  }}
                 >
                   Next
                 </button>
