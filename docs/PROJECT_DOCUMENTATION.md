@@ -566,11 +566,23 @@ NetShield-AI-Project/
 │   │   ├── upload_routes.py
 │   │   ├── user_routes.py
 │   │   └── visualization_routes.py
+│   ├── scripts/
+│   │   ├── clean_incidents_notifications.py
+│   │   ├── clean_records.py
+│   │   ├── generate_seed_sql.py
+│   │   ├── migrate_exec.py
+│   │   ├── migrate_routes.py
+│   │   ├── populate_db.py
+│   │   └── populate_incidents_notifications.py
 │   ├── services/
 │   │   ├── report_generator.py
 │   │   ├── siem_service.py
 │   │   └── threat_intel_service.py
 │   ├── tests/
+│   │   ├── demonstrate_milestone4_platform.py
+│   │   ├── test_all_endpoints.py
+│   │   ├── test_conn.py
+│   │   └── validate_milestone4_model.py
 │   └── uploads/
 │       ├── .gitkeep
 │       └── samples/

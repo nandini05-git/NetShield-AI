@@ -19,24 +19,90 @@
 
 ## 📑 Table of Contents
 
-1. [Project Overview](#-project-overview)
-2. [Technology Stack](#-technology-stack)
-3. [System Architecture](#-system-architecture)
-4. [Application Workflow](#-application-workflow)
-5. [Core Implemented Features](#-core-implemented-features)
-6. [AI / Machine Learning Pipeline](#-ai--machine-learning-pipeline)
-7. [Dual-Database Architecture](#-dual-database-architecture)
-8. [Project Directory Structure](#-project-directory-structure)
-9. [Docker Deployment & Orchestration](#-docker-deployment--orchestration)
-10. [Application Access & URLs](#-application-access--urls)
-11. [Verified REST API Reference](#-verified-rest-api-reference)
-12. [Security, Authentication & RBAC](#-security-authentication--rbac)
-13. [Reporting Engine](#-reporting-engine)
-14. [Testing & Validation](#-testing--validation)
-15. [Application Screenshots & SOC Views](#-application-screenshots--soc-views)
-16. [Milestone 4 — Testing, Deployment & Documentation](#-milestone-4--testing-deployment--documentation)
-17. [Future Cloud Deployment & Roadmap](#-future-cloud-deployment--roadmap)
-18. [License & Credentials](#-license--credentials)
+1. [20-Page Comprehensive Engineering Documentation](#-20-page-comprehensive-engineering-documentation)
+2. [System Implementation & Component Status Matrix](#-system-implementation--component-status-matrix)
+3. [Project Overview](#-project-overview)
+4. [Technology Stack](#-technology-stack)
+5. [System Architecture](#-system-architecture)
+6. [Application Workflow](#-application-workflow)
+7. [Core Implemented Features](#-core-implemented-features)
+8. [AI / Machine Learning Pipeline](#-ai--machine-learning-pipeline)
+9. [Dual-Database Architecture](#-dual-database-architecture)
+10. [Project Directory Structure](#-project-directory-structure)
+11. [Docker Deployment & Orchestration](#-docker-deployment--orchestration)
+12. [Application Access & URLs](#-application-access--urls)
+13. [Verified REST API Reference](#-verified-rest-api-reference)
+14. [Security, Authentication & RBAC](#-security-authentication--rbac)
+15. [Reporting Engine](#-reporting-engine)
+16. [Testing & Validation](#-testing--validation)
+17. [Application Screenshots & SOC Views](#-application-screenshots--soc-views)
+18. [Milestone 4 — Testing, Deployment & Documentation](#-milestone-4--testing-deployment--documentation)
+19. [Future Cloud Deployment & Roadmap](#-future-cloud-deployment--roadmap)
+20. [License & Credentials](#-license--credentials)
+
+---
+
+## 📄 20-Page Comprehensive Engineering Documentation
+
+The complete architectural, theoretical, and operational specification for NetShield AI is documented in [`docs/PROJECT_DOCUMENTATION.md`](docs/PROJECT_DOCUMENTATION.md). Written to standard academic and enterprise reporting guidelines, the document spans **~20 standard single-spaced pages** (**941 lines**, **7,530+ words**, **62,600+ characters**) structured into 10 chapters:
+
+| Chapter | Title & Scope | Verified Project Contents Covered | Documentation Metrics |
+| :---: | :--- | :--- | :---: |
+| **Ch. 1** | **Project Overview & Objectives** | Executive summary, cybersecurity industry context, 5 Core Engineering Pillars, operational stakeholders, and key outcomes | ~2.0 Pages (72 Lines) |
+| **Ch. 2** | **Problem Statement & Scope** | Threat vectors (`DDoS`, `FTP-Patator`, `SSH-Patator`), payload encryption blindness, behavioral flow rationale, in/out-of-scope boundaries, and NIST CSF alignment | ~2.5 Pages (75 Lines) |
+| **Ch. 3** | **System Architecture** | Multi-tier architecture diagram, 7-stage processing pipeline, end-to-end sequence diagram, dual-database design (PostgreSQL 16 + MongoDB 7.0), and defense-in-depth security | ~3.0 Pages (174 Lines) |
+| **Ch. 4** | **Technology Stack & Modules** | Engineering justifications for FastAPI, React 18, PostgreSQL 16, MongoDB 7.0, Scikit-Learn Random Forest, ReportLab, Docker Compose, and detailed breakdowns of all 8 core modules | ~2.5 Pages (80 Lines) |
+| **Ch. 5** | **Dataset & AI/ML Model** | CICIDS2017 benchmark standard (`sample_network_traffic.csv`), 78 flow features vector, preprocessing without scaling, Random Forest mathematics (Gini, trees, depth), 0–100 risk scoring formula, and dynamic `.pkl` evaluation | ~3.0 Pages (88 Lines) |
+| **Ch. 6** | **Implementation & Milestones** | 8-Week Agile Sprint Framework (Milestones 1 – 4), FastAPI migration, dual-database integration, and complete repository directory tree | ~2.0 Pages (110 Lines) |
+| **Ch. 7** | **User Roles & Dashboard** | Role-Based Access Control (RBAC) matrix (`ADMIN`, `ANALYST`, `AUDITOR`), Midnight Navy SOC UI/UX design system, and detailed breakdown of all 11 SOC pages | ~2.0 Pages (65 Lines) |
+| **Ch. 8** | **Testing & Performance Evaluation** | Verification framework, automated FastAPI integration test suite (`backend/test_fastapi_endpoints.py`: `1 passed`), ML evaluation formulas, confusion matrix (500 samples), 0.42 ms latency, and zero-hardcoding proof | ~2.0 Pages (75 Lines) |
+| **Ch. 9** | **Deployment & Results** | Multi-stage Docker builds, complete `docker-compose.yml` service orchestration, Nginx reverse proxy, cloud deployment status, and empirical performance metrics | ~2.0 Pages (85 Lines) |
+| **Ch. 10** | **Conclusion & Future Enhancements** | Project accomplishments, SOC operational impact, future cloud deployment roadmap (AWS/Azure), kernel-level packet sniffing (eBPF), and academic citations | ~1.5 Pages (42 Lines) |
+
+> 📖 **Read Full Document:** [`docs/PROJECT_DOCUMENTATION.md`](docs/PROJECT_DOCUMENTATION.md)
+
+---
+
+## 📋 System Implementation & Component Status Matrix
+
+This matrix details every subsystem across NetShield AI, the exact source files implementing it, what each file contains, and its current verified completion status in the codebase:
+
+### 🚨 Core Focus: Threat Detection Subsystem
+| Component | Primary File(s) | Exact File Contents & Technical Responsibility | Status |
+| :--- | :--- | :--- | :---: |
+| **Threat Detection API Router** | [`backend/routes/threat_routes.py`](backend/routes/threat_routes.py) | FastAPI router registering `/api/threats` and `/api/threats/{threat_id}`. Implements SQL queries on the `threats` table, multi-class threat retrieval, dynamic case-insensitive severity query filtering (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`), search text filtering, pagination, and status transitions (`ACTIVE`, `INVESTIGATING`, `RESOLVED`). | ✅ **COMPLETED** |
+| **Threat Detection SOC Interface** | [`frontend/src/pages/Threats.js`](frontend/src/pages/Threats.js) | React SOC user interface for Threat Detection. Contains the interactive threat feed table, severity filter dropdown, search input, status badge styling, and real-time telemetry rendering via Axios with JWT authentication. | ✅ **COMPLETED** |
+| **AI Threat Inference Engine** | [`backend/ml/train_model.py`](backend/ml/train_model.py)<br>[`backend/ml/preprocessing.py`](backend/ml/preprocessing.py) | Machine learning pipeline and runtime preprocessor. Ingests 78 statistical network flow features, cleans NaNs/Infs to `0.0`, strips non-numeric metadata, aligns columns with `feature_names.pkl`, and performs multi-class threat classification (`BENIGN`, `DDoS`, `FTP-Patator`, `SSH-Patator`) using Scikit-Learn's `RandomForestClassifier`. | ✅ **COMPLETED** |
+| **Serialized Model Artifacts** | [`backend/models/network_model.pkl`](backend/models/network_model.pkl)<br>[`backend/models/label_encoder.pkl`](backend/models/label_encoder.pkl)<br>[`backend/models/feature_names.pkl`](backend/models/feature_names.pkl) | Serialized Scikit-Learn Random Forest model (100 estimators, max depth 20), label encoder, and 78-feature schema loaded into memory by FastAPI at application startup via `joblib`. | ✅ **COMPLETED** |
+| **Mathematical Risk Engine** | [`backend/routes/threat_routes.py`](backend/routes/threat_routes.py)<br>[`backend/ml/evaluation.py`](backend/ml/evaluation.py) | Mathematical formulation calculating continuous 0–100 risk score based on base severity and model posterior confidence: BENIGN (5), FTP-Patator (65), SSH-Patator (80), DDoS (95). Maps score to severity tiers. | ✅ **COMPLETED** |
+| **Relational Threat Persistence** | [`database/complete_postgres_schema.sql`](database/complete_postgres_schema.sql)<br>[`backend/database.py`](backend/database.py) | PostgreSQL `threats` table definition with primary key, threat type, severity, source/destination IPs, status, and timestamp. Managed via threaded connection pool. | ✅ **COMPLETED** |
+| **Document Threat Telemetry** | [`backend/mongo_db.py`](backend/mongo_db.py)<br>[`database/mongo_schema.json`](database/mongo_schema.json) | MongoDB collection `detailed_threat_events` storing raw packet payloads, header snippets, and deep forensic telemetry documents. | ✅ **COMPLETED** |
+
+---
+
+### 🌐 Complete System Component Status
+| Subsystem Area | Implementation File(s) | Exact File Contents & Role | Status |
+| :--- | :--- | :--- | :---: |
+| **User Authentication & RBAC** | `backend/routes/auth_routes.py`<br>`backend/auth.py`<br>`frontend/src/pages/Login.js`<br>`database/complete_postgres_schema.sql` (`users`) | JWT Bearer token generation (HS256), bcrypt password hashing, role enforcement (`ADMIN`, `ANALYST`, `AUDITOR`), protected route guards in React SPA. | ✅ **COMPLETED** |
+| **Live Network Monitoring** | `backend/routes/network_routes.py`<br>`frontend/src/pages/NetworkMonitor.js`<br>`psutil` | Real-time interface bandwidth curves (KB/s), active port inspector (21, 22, 53, 80, 443), protocol distribution donut (TCP, UDP, ICMP, Other), and packet error diagnostics. | ✅ **COMPLETED** |
+| **Behavioral Anomaly Detection** | `backend/routes/upload_routes.py`<br>`frontend/src/pages/Upload.js`<br>`backend/ml/preprocessing.py` | CSV flow batch upload, Wireshark PCAP extract parsing, automated 78-feature alignment, missing value imputation, and instant batch classification rendering. | ✅ **COMPLETED** |
+| **SOC Alert Management** | `backend/routes/alert_routes.py`<br>`frontend/src/pages/Alerts.js`<br>`database/complete_postgres_schema.sql` (`security_alerts`) | Automated alert generation for high-risk threats, prioritized triage queue, analyst assignment, and lifecycle progression (`ACTIVE` $\rightarrow$ `INVESTIGATING` $\rightarrow$ `RESOLVED`). | ✅ **COMPLETED** |
+| **Incident Investigation** | `backend/routes/incident_routes.py`<br>`frontend/src/pages/Incidents.js`<br>`database/complete_postgres_schema.sql` (`incidents`) | Formal security incident ticket management, assigned analyst tracking, impact assessment summaries, and forensic resolution logging. | ✅ **COMPLETED** |
+| **AI Predictions Evaluation** | `backend/routes/upload_routes.py`<br>`frontend/src/pages/Predictions.js`<br>`backend/models/all_models_evaluation.pkl` | Granular per-flow prediction logs, confidence percentages, calculated risk scores, and confusion matrix rendering. | ✅ **COMPLETED** |
+| **Executive Security Analytics** | `backend/routes/analytics_routes.py`<br>`backend/routes/visualization_routes.py`<br>`frontend/src/pages/Analytics.js` | High-level KPI cards (Total Flows, Malicious Detections, Active Alerts, Average Risk), attack distribution bar/pie charts, and top attacker IP tables. | ✅ **COMPLETED** |
+| **Weekly Security Trends** | `backend/routes/analytics_routes.py`<br>`frontend/src/pages/WeeklySecurityTrends.js` | 7-day chronological line charts tracking historical threat trajectories, volumetric trends, and attack class frequencies. | ✅ **COMPLETED** |
+| **Threat Timeline Audit** | `backend/routes/threat_routes.py`<br>`frontend/src/pages/ThreatTimeline.js` | Chronological event stream displaying timestamped network anomalies, prediction outputs, and mitigation events. | ✅ **COMPLETED** |
+| **Dynamic PDF Reporting** | `backend/routes/report_routes.py`<br>`backend/services/report_generator.py`<br>`frontend/src/pages/Reports.js` | ReportLab dynamic PDF generation engine compiling executive summaries, incident briefs, and attacker rosters on demand (`GET /api/reports/download-pdf/{id}`). | ✅ **COMPLETED** |
+| **Threat Intelligence Integration** | `backend/services/threat_intel_service.py`<br>`frontend/src/pages/ThreatIntelligence.js`<br>MongoDB `threat_intelligence_docs` | AbuseIPDB external IP reputation queries with local MongoDB document caching to minimize external API latency. | ✅ **COMPLETED** |
+| **Dual-Database Persistence** | `backend/database.py` (PostgreSQL 16)<br>`backend/mongo_db.py` (MongoDB 7.0)<br>`docker-compose.yml` | PostgreSQL connection pool on Port `5432` for structured entities; MongoDB client on Port `27017` for raw packet telemetry and unstructured documents. | ✅ **COMPLETED** |
+| **Docker Compose Orchestration** | `docker-compose.yml`<br>`backend/Dockerfile`<br>`frontend/Dockerfile`<br>`frontend/nginx.conf` | Multi-container orchestration of 4 services (`netshield-frontend:3000`, `netshield-backend:5000`, `netshield-postgres:5432`, `netshield-mongo:27017`) on bridge network. | ✅ **COMPLETED** |
+| **Automated Integration Testing** | `backend/test_fastapi_endpoints.py`<br>`pytest` | Automated FastAPI test suite executing Starlette/HTTPX client requests across health, auth, monitoring, threats, alerts, and analytics routes (`1 passed`). | ✅ **COMPLETED** |
+| **20-Page Technical Documentation** | [`docs/PROJECT_DOCUMENTATION.md`](docs/PROJECT_DOCUMENTATION.md) | Comprehensive 10-chapter technical report covering architecture, ML algorithms, dual-database schemas, testing, and deployment (941 lines, ~20 pages). | ✅ **COMPLETED** |
+| **Cloud Deployment (AWS / Azure)** | Planned Architecture | Cloud container deployment (Amazon ECS/EKS or Azure Container Apps/AKS) with managed databases (Amazon Aurora / Azure PostgreSQL). | ⏳ **PLANNED / FUTURE ROADMAP** |
+| **Kernel Packet Capture (eBPF)** | Planned Architecture | Kernel-space eBPF bytecode programs for line-rate packet capture at 10+ Gbps. | ⏳ **PLANNED / FUTURE ROADMAP** |
+| **Continuous MLOps Retraining** | Planned Architecture | Automated data drift detection and scheduled retraining pipelines using Airflow or Kubeflow. | ⏳ **PLANNED / FUTURE ROADMAP** |
+
+---
 
 ---
 
@@ -383,11 +449,23 @@ NetShield-AI-Project/
 │   │   ├── upload_routes.py
 │   │   ├── user_routes.py
 │   │   └── visualization_routes.py
+│   ├── scripts/
+│   │   ├── clean_incidents_notifications.py
+│   │   ├── clean_records.py
+│   │   ├── generate_seed_sql.py
+│   │   ├── migrate_exec.py
+│   │   ├── migrate_routes.py
+│   │   ├── populate_db.py
+│   │   └── populate_incidents_notifications.py
 │   ├── services/
 │   │   ├── report_generator.py
 │   │   ├── siem_service.py
 │   │   └── threat_intel_service.py
 │   ├── tests/
+│   │   ├── demonstrate_milestone4_platform.py
+│   │   ├── test_all_endpoints.py
+│   │   ├── test_conn.py
+│   │   └── validate_milestone4_model.py
 │   └── uploads/
 │       ├── .gitkeep
 │       └── samples/
