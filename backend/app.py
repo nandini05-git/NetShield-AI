@@ -1,89 +1,116 @@
 import os
 import logging
 from contextlib import asynccontextmanager
+
 import joblib
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import Response
+
 from config import Config
 from database import init_db_pool, close_db_pool
 from mongo_db import init_mongo
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
-# Global ML Model variables
+# Global Random Forest model variables
 ml_model = None
 label_encoder = None
 model_feature_names = None
-xgboost_model = None
+
 
 def load_ml_model():
-    global ml_model, label_encoder, model_feature_names, xgboost_model
+    global ml_model, label_encoder, model_feature_names
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Check standard model paths first, then milestone2 aliases
+
+    # Prefer the primary Random Forest model.
+    # Keep milestone2 as a compatibility fallback.
     model_paths = [
-        os.path.join(base_dir, 'models', 'network_model.pkl'),
-        os.path.join(base_dir, 'models', 'network_model_milestone2.pkl')
+        os.path.join(base_dir, "models", "network_model.pkl"),
+        os.path.join(base_dir, "models", "network_model_milestone2.pkl"),
     ]
-    xgb_paths = [
-        os.path.join(base_dir, 'models', 'xgboost_model.pkl')
+
+    label_encoder_paths = [
+        os.path.join(base_dir, "models", "label_encoder.pkl"),
+        os.path.join(base_dir, "models", "label_encoder_milestone2.pkl"),
     ]
-    le_paths = [
-        os.path.join(base_dir, 'models', 'label_encoder.pkl'),
-        os.path.join(base_dir, 'models', 'label_encoder_milestone2.pkl')
+
+    feature_paths = [
+        os.path.join(base_dir, "models", "feature_names.pkl"),
+        os.path.join(base_dir, "models", "feature_names_milestone2.pkl"),
     ]
-    feat_paths = [
-        os.path.join(base_dir, 'models', 'feature_names.pkl'),
-        os.path.join(base_dir, 'models', 'feature_names_milestone2.pkl')
-    ]
-    
+
     model_path = next((p for p in model_paths if os.path.exists(p)), None)
-    xgb_path = next((p for p in xgb_paths if os.path.exists(p)), None)
-    le_path = next((p for p in le_paths if os.path.exists(p)), None)
-    feat_path = next((p for p in feat_paths if os.path.exists(p)), None)
-    
-    if model_path and le_path and feat_path:
-        try:
-            ml_model = joblib.load(model_path)
-            label_encoder = joblib.load(le_path)
-            model_feature_names = joblib.load(feat_path)
-            if xgb_path:
-                try:
-                    xgboost_model = joblib.load(xgb_path)
-                    logger.info("Loaded XGBoost auxiliary model.")
-                except Exception as ex:
-                    logger.warning(f"XGBoost load note: {ex}")
-            logger.info(f"MODEL ACTIVE: Successfully loaded ML model from {os.path.basename(model_path)} with {len(model_feature_names)} features.")
-            return True
-        except Exception as e:
-            logger.error(f"MODEL OFFLINE: Error loading ML model artifacts: {str(e)}")
-            ml_model, label_encoder, model_feature_names = None, None, None
-            return False
-    else:
-        logger.warning("MODEL OFFLINE: ML Model artifacts not found in models/ directory. Run train_model.py first.")
-        ml_model, label_encoder, model_feature_names = None, None, None
+    label_encoder_path = next(
+        (p for p in label_encoder_paths if os.path.exists(p)), None
+    )
+    feature_path = next(
+        (p for p in feature_paths if os.path.exists(p)), None
+    )
+
+    if not model_path or not label_encoder_path or not feature_path:
+        logger.warning(
+            "MODEL OFFLINE: Random Forest model artifacts were not found "
+            "in backend/models/. Run the model training script first."
+        )
+        ml_model = None
+        label_encoder = None
+        model_feature_names = None
         return False
+
+    try:
+        ml_model = joblib.load(model_path)
+        label_encoder = joblib.load(label_encoder_path)
+        model_feature_names = joblib.load(feature_path)
+
+        logger.info(
+            "MODEL ACTIVE: Random Forest model loaded successfully from %s "
+            "with %d features.",
+            os.path.basename(model_path),
+            len(model_feature_names),
+        )
+
+        return True
+
+    except Exception as exc:
+        logger.error(
+            "MODEL OFFLINE: Error loading Random Forest model artifacts: %s",
+            exc,
+        )
+        ml_model = None
+        label_encoder = None
+        model_feature_names = None
+        return False
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     logger.info("Initializing NetShield AI Backend Services...")
+
     init_db_pool()
     init_mongo()
     load_ml_model()
+
     yield
-    # Shutdown
+
     logger.info("Shutting down NetShield AI Backend Services...")
     close_db_pool()
 
+
 app = FastAPI(
     title="NetShield AI API",
-    description="AI Powered Network Anomaly Detection & Threat Monitoring System (FastAPI + PostgreSQL + MongoDB + Scikit-Learn / XGBoost / TensorFlow)",
+    description=(
+        "AI Powered Network Anomaly Detection & Threat Monitoring System "
+        "(FastAPI + PostgreSQL + MongoDB + Scikit-Learn Random Forest)"
+    ),
     version="2.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Enable CORS for React frontend
@@ -127,7 +154,7 @@ app.include_router(system_router, prefix="/api", tags=["System"])
 app.include_router(user_router, prefix="/api", tags=["Users"])
 app.include_router(audit_router, prefix="/api", tags=["Audit"])
 
-# Also include root-level paths for backwards compatibility
+# Root-level paths for backwards compatibility
 app.include_router(auth_router, prefix="/auth", include_in_schema=False)
 app.include_router(dashboard_router, prefix="", include_in_schema=False)
 app.include_router(upload_router, prefix="", include_in_schema=False)
@@ -143,11 +170,22 @@ app.include_router(system_router, prefix="", include_in_schema=False)
 app.include_router(user_router, prefix="", include_in_schema=False)
 app.include_router(audit_router, prefix="", include_in_schema=False)
 
-@app.get('/favicon.ico', include_in_schema=False)
+
+@app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return Response(status_code=204)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import uvicorn
-    logger.info(f"Starting NetShield AI FastAPI REST API on port {Config.PORT}...")
-    uvicorn.run("app:app", host="0.0.0.0", port=Config.PORT, reload=True)
+
+    logger.info(
+        "Starting NetShield AI FastAPI REST API on port %s...",
+        Config.PORT,
+    )
+    uvicorn.run(
+        "app:app",
+        host="0.0.0.0",
+        port=Config.PORT,
+        reload=True,
+    )

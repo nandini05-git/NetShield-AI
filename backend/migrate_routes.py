@@ -803,7 +803,7 @@ async def get_system_info():
         'name': 'NetShield AI',
         'version': '4.2-FastAPI-Production',
         'architecture': 'Multi-Tiered FastAPI + PostgreSQL + MongoDB',
-        'ml_engine': 'Random Forest + XGBoost + TensorFlow DNN',
+        'ml_engine': 'Random Forest',
         'threat_intel': Config.THREAT_INTEL_PROVIDER,
         'siem_integration': get_siem_status()
     }
