@@ -71,102 +71,55 @@ const WeeklyAttackTrend = ({ data = [], height = 280, showTitle = true }) => {
           </AreaChart>
         </ResponsiveContainer>
       ) : data && data.length === 1 ? (
-        <div
-          style={{
-            height,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            padding: '12px 16px',
-            boxSizing: 'border-box'
-          }}
-        >
+        <div className="single-day-telemetry-container">
           {/* Status Badge */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '3px 12px',
-              background: 'rgba(245, 158, 11, 0.12)',
-              border: '1px solid rgba(245, 158, 11, 0.35)',
-              borderRadius: 20,
-              color: '#f59e0b',
-              fontSize: '0.76rem',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-              marginBottom: 10
-            }}
-          >
+          <div className="insufficient-trend-pill">
             <span style={{ fontSize: '0.65rem' }}>●</span> Insufficient trend data
           </div>
 
           {/* Subtitle & Date */}
-          <div style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginBottom: 2 }}>
+          <div className="single-day-subtitle">
             Single-Day Telemetry
           </div>
-          <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', marginBottom: 14 }}>
+          <div className="single-day-date">
             {data[0].day ? (data[0].display_date ? `${data[0].day}, ${data[0].display_date}` : data[0].day) : (data[0].display_date || data[0].date || 'Single-Day')}
           </div>
 
           {/* Compact Aligned Metric Cards */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, width: '100%', maxWidth: 360, marginBottom: 14 }}>
-            <div
-              style={{
-                flex: 1,
-                padding: '10px 14px',
-                background: 'rgba(10, 22, 40, 0.85)',
-                borderRadius: 'var(--radius-sm, 6px)',
-                border: '1px solid #1e3553',
-                textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
-              }}
-            >
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary-green, #22C55E)', lineHeight: 1.1 }}>
+          <div className="single-day-metrics-row">
+            <div className="single-day-metric-box">
+              <div className="single-day-metric-value" style={{ color: 'var(--primary-green, #22C55E)' }}>
                 {data[0].attacks?.toLocaleString() ?? 0}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, marginTop: 4 }}>
+              <div className="single-day-metric-label">
                 Total Incursions
               </div>
             </div>
 
-            <div
-              style={{
-                flex: 1,
-                padding: '10px 14px',
-                background: 'rgba(10, 22, 40, 0.85)',
-                borderRadius: 'var(--radius-sm, 6px)',
-                border: '1px solid #1e3553',
-                textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
-              }}
-            >
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#EF4444', lineHeight: 1.1 }}>
+            <div className="single-day-metric-box">
+              <div className="single-day-metric-value" style={{ color: '#EF4444' }}>
                 {data[0].critical_count?.toLocaleString() ?? 0}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, marginTop: 4 }}>
+              <div className="single-day-metric-label">
                 Critical Threats
               </div>
             </div>
           </div>
 
-          {/* Explanatory Message */}
-          <div style={{ fontSize: '0.78rem', color: '#64748b', maxWidth: 420, lineHeight: 1.45 }}>
-            Multi-day trend visualization will appear automatically when verified traffic is available across 2 or more distinct days.
+          {/* Explanatory Message - exact user requested wording */}
+          <div className="single-day-footer-note">
+            Multi-day trend visualization will appear when verified traffic is available across 2 or more distinct days.
           </div>
         </div>
       ) : (
         <div
           style={{
-            height,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             textAlign: 'center',
-            padding: '20px',
+            padding: '30px 20px',
             color: 'var(--text-muted)'
           }}
         >
