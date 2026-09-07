@@ -275,7 +275,7 @@ const SecurityAnalytics = () => {
           <span className="cyber-chip">Live Threat Ingress Telemetry</span>
         </div>
 
-        {threatActivity.length > 0 ? (
+        {threatActivity.length >= 2 ? (
           <div style={{ width: '100%', height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={threatActivity} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
@@ -296,8 +296,20 @@ const SecurityAnalytics = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        ) : threatActivity.length === 1 ? (
+          <div style={{ padding: '36px 20px', textAlign: 'center' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 14px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: 20, color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, marginBottom: 14 }}>
+              ● Insufficient trend data
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc', marginBottom: 6 }}>
+              Time Interval: {threatActivity[0].time} — {threatActivity[0].threats} threats detected (Avg Risk: {threatActivity[0].risk}/100)
+            </div>
+            <div style={{ fontSize: '0.82rem', color: '#64748b', maxWidth: 440, margin: '0 auto' }}>
+              Multi-point activity trend curves require traffic timestamps spanning multiple intervals.
+            </div>
+          </div>
         ) : (
-          <EmptyState message="Insufficient historical data" description="No time-series threat data recorded in the system yet." />
+          <EmptyState message="No data available" description="No time-series threat data recorded in the system yet." />
         )}
       </div>
 
@@ -483,7 +495,7 @@ const SecurityAnalytics = () => {
           <span className="cyber-chip">Multi-Category Attack Stream</span>
         </div>
 
-        {attackTrends.length > 0 && trendAttackKeys.length > 0 ? (
+        {attackTrends.length >= 2 && trendAttackKeys.length > 0 ? (
           <div style={{ width: '100%', height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={attackTrends} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
@@ -511,8 +523,20 @@ const SecurityAnalytics = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        ) : attackTrends.length === 1 ? (
+          <div style={{ padding: '36px 20px', textAlign: 'center' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 14px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: 20, color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, marginBottom: 14 }}>
+              ● Insufficient trend data
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc', marginBottom: 6 }}>
+              Single Time Interval Recorded: {attackTrends[0].time}
+            </div>
+            <div style={{ fontSize: '0.82rem', color: '#64748b', maxWidth: 440, margin: '0 auto' }}>
+              Multi-series attack distribution requires flows spanning multiple time intervals.
+            </div>
+          </div>
         ) : (
-          <EmptyState message="Insufficient historical data" description="Multi-series attack trends will appear once additional flow timestamps are ingested." />
+          <EmptyState message="No data available" description="No multi-series attack trends recorded." />
         )}
       </div>
 
@@ -560,7 +584,7 @@ const SecurityAnalytics = () => {
           </div>
         </div>
 
-        {trafficTrend.length > 0 ? (
+        {trafficTrend.length >= 2 ? (
           <div style={{ width: '100%', height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trafficTrend} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
@@ -584,8 +608,20 @@ const SecurityAnalytics = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        ) : trafficTrend.length === 1 ? (
+          <div style={{ padding: '36px 20px', textAlign: 'center' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 14px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: 20, color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, marginBottom: 14 }}>
+              ● Insufficient trend data
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc', marginBottom: 6 }}>
+              Time Interval: {trafficTrend[0].time} — Clean: {trafficTrend[0].benign} flows, Threats: {trafficTrend[0].threats} flows
+            </div>
+            <div style={{ fontSize: '0.82rem', color: '#64748b', maxWidth: 440, margin: '0 auto' }}>
+              Dynamic traffic trend curves require network flows across multiple time intervals.
+            </div>
+          </div>
         ) : (
-          <EmptyState message="Insufficient traffic trend data" description="Traffic records will graph dynamically as packets are ingested." />
+          <EmptyState message="No data available" description="Traffic records will graph dynamically as packets are ingested." />
         )}
       </div>
 

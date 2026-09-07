@@ -212,21 +212,16 @@ async def get_threat_intelligence(
     threat_performance_metrics = []
     if has_gt and class_metrics:
         for cm in class_metrics:
-            cname = cm["class_name"]
-            threat_performance_metrics.append({
-                "class_name": cname,
-                "accuracy": cm.get("accuracy"),
-                "confidence": cm.get("confidence"),
-                "color": class_colors.get(cname, "#3B82F6"),
-            })
-    elif has_gt and acc_val is not None:
-        for cname in ["BENIGN", "DDoS", "FTP-Patator", "SSH-Patator"]:
-            threat_performance_metrics.append({
-                "class_name": cname,
-                "accuracy": acc_val,
-                "confidence": None,
-                "color": class_colors.get(cname, "#3B82F6"),
-            })
+            cname = cm.get("class_name")
+            acc = cm.get("accuracy")
+            conf = cm.get("confidence")
+            if acc is not None and isinstance(acc, (int, float)):
+                threat_performance_metrics.append({
+                    "class_name": cname,
+                    "accuracy": round(float(acc), 1),
+                    "confidence": round(float(conf), 1) if conf is not None else None,
+                    "color": class_colors.get(cname, "#3B82F6"),
+                })
     else:
         threat_performance_metrics = []
 
@@ -301,6 +296,8 @@ async def get_threat_intelligence(
         "insights": insights,
         "risk_distribution": risk_distribution,
         "threat_performance_metrics": threat_performance_metrics,
+        "has_ground_truth": has_gt,
+        "has_verified_evaluation": has_gt and len(threat_performance_metrics) > 0,
         "critical_threats": critical_threats or [],
         "provider_status": {
             "provider": "AbuseIPDB",
@@ -829,44 +826,69 @@ async def get_security_analytics(
     # ------------------------------------------------------------------
     # Real threat activity timeline
     # ------------------------------------------------------------------
-    threat_activity_rows = fetch_all(
+    span_check = fetch_one(
         """
-        SELECT EXTRACT(HOUR FROM detected_at)::int AS hour,
-               COUNT(*) AS threats,
-               AVG(risk_score) AS risk
+        SELECT COUNT(DISTINCT EXTRACT(HOUR FROM detected_at)) AS hour_count,
+               COUNT(DISTINCT TO_CHAR(detected_at, 'HH24:MI:SS')) AS sec_count
         FROM threats
         WHERE detected_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
-        GROUP BY EXTRACT(HOUR FROM detected_at)
-        ORDER BY hour
         """
     )
+    hour_count = safe_count(span_check, "hour_count")
+    sec_count = safe_count(span_check, "sec_count")
 
-    if not threat_activity_rows:
-        threat_activity_rows = fetch_all(
+    if sec_count == 0:
+        span_check = fetch_one(
             """
-            SELECT EXTRACT(HOUR FROM detected_at)::int AS hour,
-                   COUNT(*) AS threats,
-                   AVG(risk_score) AS risk
+            SELECT COUNT(DISTINCT EXTRACT(HOUR FROM detected_at)) AS hour_count,
+                   COUNT(DISTINCT TO_CHAR(detected_at, 'HH24:MI:SS')) AS sec_count
             FROM threats
             WHERE detected_at >= (SELECT MAX(detected_at) FROM threats) - INTERVAL '24 hours'
-            GROUP BY EXTRACT(HOUR FROM detected_at)
-            ORDER BY hour
             """
         )
+        hour_count = safe_count(span_check, "hour_count")
+        sec_count = safe_count(span_check, "sec_count")
+        fallback_clause = "WHERE detected_at >= (SELECT MAX(detected_at) FROM threats) - INTERVAL '24 hours'"
+    else:
+        fallback_clause = "WHERE detected_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'"
 
-    threat_activity = []
-
-    for row in threat_activity_rows:
-        hour = int(row.get("hour") or 0)
-        risk = safe_metric(row.get("risk"))
-
-        threat_activity.append(
-            {
-                "time": f"{hour:02d}:00",
-                "threats": int(row.get("threats") or 0),
-                "risk": risk if risk is not None else 0,
-            }
+    if hour_count > 1:
+        threat_activity_rows = fetch_all(
+            f"""
+            SELECT TO_CHAR(detected_at, 'HH24:00') AS time,
+                   COUNT(*) AS threats,
+                   ROUND(AVG(risk_score)::numeric, 1) AS risk
+            FROM threats
+            {fallback_clause}
+            GROUP BY TO_CHAR(detected_at, 'HH24:00')
+            ORDER BY MIN(detected_at)
+            LIMIT 30
+            """
         )
+    elif sec_count > 0:
+        threat_activity_rows = fetch_all(
+            f"""
+            SELECT TO_CHAR(detected_at, 'HH24:MI:SS') AS time,
+                   COUNT(*) AS threats,
+                   ROUND(AVG(risk_score)::numeric, 1) AS risk
+            FROM threats
+            {fallback_clause}
+            GROUP BY TO_CHAR(detected_at, 'HH24:MI:SS')
+            ORDER BY MIN(detected_at)
+            LIMIT 30
+            """
+        )
+    else:
+        threat_activity_rows = []
+
+    threat_activity = [
+        {
+            "time": row["time"],
+            "threats": int(row.get("threats") or 0),
+            "risk": safe_metric(row.get("risk")) or 0,
+        }
+        for row in threat_activity_rows
+    ]
 
     # ------------------------------------------------------------------
     # Top sources from PostgreSQL
@@ -1032,47 +1054,49 @@ async def get_security_analytics(
     # ------------------------------------------------------------------
     # Real attack trends from the last 24 hours
     # ------------------------------------------------------------------
-    attack_trend_rows = fetch_all(
-        """
-        SELECT EXTRACT(HOUR FROM detected_at)::int AS hour,
-               attack_type,
-               COUNT(*) AS count
-        FROM threats
-        WHERE detected_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
-        GROUP BY EXTRACT(HOUR FROM detected_at), attack_type
-        ORDER BY hour
-        """
-    )
-
-    if not attack_trend_rows:
+    if hour_count > 1:
         attack_trend_rows = fetch_all(
-            """
-            SELECT EXTRACT(HOUR FROM detected_at)::int AS hour,
+            f"""
+            SELECT TO_CHAR(detected_at, 'HH24:00') AS time,
                    attack_type,
                    COUNT(*) AS count
             FROM threats
-            WHERE detected_at >= (SELECT MAX(detected_at) FROM threats) - INTERVAL '24 hours'
-            GROUP BY EXTRACT(HOUR FROM detected_at), attack_type
-            ORDER BY hour
+            {fallback_clause}
+            GROUP BY TO_CHAR(detected_at, 'HH24:00'), attack_type
+            ORDER BY MIN(detected_at)
             """
         )
+    elif sec_count > 0:
+        attack_trend_rows = fetch_all(
+            f"""
+            SELECT TO_CHAR(detected_at, 'HH24:MI:SS') AS time,
+                   attack_type,
+                   COUNT(*) AS count
+            FROM threats
+            {fallback_clause}
+            GROUP BY TO_CHAR(detected_at, 'HH24:MI:SS'), attack_type
+            ORDER BY MIN(detected_at)
+            """
+        )
+    else:
+        attack_trend_rows = []
 
     attack_trends_map = {}
 
     for row in attack_trend_rows:
-        hour = int(row.get("hour") or 0)
+        time_key = row.get("time")
         attack_type = row.get("attack_type")
         count = int(row.get("count") or 0)
 
-        if hour not in attack_trends_map:
-            attack_trends_map[hour] = {
-                "time": f"{hour:02d}:00",
+        if time_key not in attack_trends_map:
+            attack_trends_map[time_key] = {
+                "time": time_key,
                 "DDoS": 0,
                 "FTP-Patator": 0,
                 "SSH-Patator": 0,
             }
 
-        attack_trends_map[hour][attack_type] = count
+        attack_trends_map[time_key][attack_type] = count
 
     attack_trends = list(attack_trends_map.values())
 

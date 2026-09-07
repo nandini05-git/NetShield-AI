@@ -244,7 +244,7 @@ const Upload = () => {
               <div>
                 <div className="kpi-label">MODEL ACCURACY</div>
                 <div className="kpi-value" style={{ color: 'var(--primary-green)' }}>
-                  {results.evaluation?.accuracy ? `${results.evaluation.accuracy}%` : '100%'}
+                  {results.evaluation?.accuracy !== null && results.evaluation?.accuracy !== undefined ? `${results.evaluation.accuracy}%` : 'N/A'}
                 </div>
                 <div className="kpi-subtext">Random Forest Confidence</div>
               </div>
