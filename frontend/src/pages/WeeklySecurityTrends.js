@@ -194,8 +194,12 @@ const WeeklySecurityTrends = () => {
         </div>
 
         <div style={{ fontSize: '0.84rem', color: 'var(--text-primary)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FaCheckCircle style={{ color: 'var(--primary-green)', flexShrink: 0 }} />
-          <span>Model evaluation metrics measured on cross-validation held-out network traffic benchmarks.</span>
+          <FaCheckCircle style={{ color: modelPerf.accuracy !== null && modelPerf.accuracy !== undefined ? 'var(--primary-green)' : '#94a3b8', flexShrink: 0 }} />
+          <span>
+            {modelPerf.accuracy !== null && modelPerf.accuracy !== undefined
+              ? 'Model evaluation metrics measured dynamically against verified ground-truth flow labels.'
+              : 'Ground-truth labels are unavailable for runtime evaluation.'}
+          </span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>

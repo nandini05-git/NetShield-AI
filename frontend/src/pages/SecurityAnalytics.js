@@ -118,13 +118,15 @@ const SecurityAnalytics = () => {
     threats: tt.threats !== undefined ? tt.threats : (tt.threat !== undefined ? tt.threat : 0)
   }));
   const aiPerf = data?.ai_performance || {
-    accuracy: data?.model_metrics?.accuracy || 99.2,
-    precision: data?.model_metrics?.precision || 98.9,
-    recall: data?.model_metrics?.recall || 99.4,
-    f1_score: data?.model_metrics?.f1_score || 99.1,
-    latency_ms: 1.2,
-    test_samples: overview.total_traffic || 1177,
-    active_model: 'Random Forest (Production Model)'
+    accuracy: data?.model_metrics?.accuracy ?? null,
+    precision: data?.model_metrics?.precision ?? null,
+    recall: data?.model_metrics?.recall ?? null,
+    f1_score: data?.model_metrics?.f1_score ?? null,
+    latency_ms: null,
+    test_samples: overview.total_traffic ?? null,
+    active_model: 'Random Forest (Production Model)',
+    features: 78,
+    classes: 4
   };
   const activeThreats = data?.active_threats || [];
   const recentEvents = data?.recent_events || [];
@@ -290,7 +292,7 @@ const SecurityAnalytics = () => {
                   contentStyle={{ backgroundColor: '#0e1e36', borderColor: '#26364f', color: '#f8fafc', borderRadius: 6, fontSize: 12 }}
                   formatter={(val) => [`${val} threats`, 'Detected Threats']}
                 />
-                <Area type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#threatGradient)" name="Threats Detected" />
+                <Area type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#threatGradient)" name="Threats Detected" dot={{ r: 4, fill: '#ef4444' }} activeDot={{ r: 6 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -502,6 +504,8 @@ const SecurityAnalytics = () => {
                     fillOpacity={0.2}
                     strokeWidth={2}
                     stackId="1"
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
                   />
                 ))}
               </AreaChart>
@@ -575,8 +579,8 @@ const SecurityAnalytics = () => {
                 <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} />
                 <Tooltip contentStyle={{ backgroundColor: '#0e1e36', borderColor: '#26364f', color: '#f8fafc', borderRadius: 6, fontSize: 12 }} />
                 <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
-                <Area type="monotone" dataKey="benign" stroke="#22c55e" fillOpacity={1} fill="url(#benignGrad)" name="Benign Traffic" strokeWidth={2} />
-                <Area type="monotone" dataKey="threats" stroke="#ef4444" fillOpacity={1} fill="url(#threatGrad)" name="Threat Incursions" strokeWidth={2} />
+                <Area type="monotone" dataKey="benign" stroke="#22c55e" fillOpacity={1} fill="url(#benignGrad)" name="Benign Traffic" strokeWidth={2} dot={{ r: 3, fill: '#22c55e' }} activeDot={{ r: 5 }} />
+                <Area type="monotone" dataKey="threats" stroke="#ef4444" fillOpacity={1} fill="url(#threatGrad)" name="Threat Incursions" strokeWidth={2} dot={{ r: 3, fill: '#ef4444' }} activeDot={{ r: 5 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -679,7 +683,7 @@ const SecurityAnalytics = () => {
                     <td style={{ color: '#22c55e', fontWeight: 700 }}>
                       {typeof t.confidence === 'number'
                         ? (t.confidence > 1 ? `${t.confidence.toFixed(1)}%` : `${(t.confidence * 100).toFixed(1)}%`)
-                        : '98.5%'}
+                        : 'N/A'}
                     </td>
                     <td>
                       <span style={{ fontWeight: 800, color: t.risk_score >= 80 ? '#ef4444' : t.risk_score >= 50 ? '#f59e0b' : '#22c55e' }}>

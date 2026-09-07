@@ -54,6 +54,8 @@ const WeeklyAttackTrend = ({ data = [], height = 280, showTitle = true }) => {
               strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#attackGrad)"
+              dot={{ r: 4, fill: '#22C55E' }}
+              activeDot={{ r: 6 }}
             />
             <Area
               type="monotone"
@@ -63,6 +65,8 @@ const WeeklyAttackTrend = ({ data = [], height = 280, showTitle = true }) => {
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#critGrad)"
+              dot={{ r: 4, fill: '#EF4444' }}
+              activeDot={{ r: 6 }}
             />
           </AreaChart>
         </ResponsiveContainer>

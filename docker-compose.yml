@@ -39,7 +39,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # 3. FastAPI + Uvicorn + ML Model Engine (Scikit-Learn, XGBoost, TensorFlow, Wireshark/PCAP, Zeek)
+  # 3. FastAPI + Uvicorn + ML Model Engine (Scikit-Learn Random Forest)
   backend:
     build:
       context: ./backend

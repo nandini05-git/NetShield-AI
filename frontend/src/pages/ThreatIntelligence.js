@@ -47,12 +47,7 @@ const ThreatIntelligence = () => {
   const insights = intel?.insights || {};
   const riskDist = intel?.risk_distribution || [];
   const criticalThreats = intel?.critical_threats || [];
-  const perfMetrics = intel?.threat_performance_metrics || [
-    { class_name: 'BENIGN', accuracy: 99.1, confidence: 98.5, color: '#22C55E' },
-    { class_name: 'DDoS', accuracy: 98.9, confidence: 99.2, color: '#EF4444' },
-    { class_name: 'FTP-Patator', accuracy: 97.8, confidence: 96.9, color: '#F59E0B' },
-    { class_name: 'SSH-Patator', accuracy: 98.2, confidence: 97.4, color: '#F97316' }
-  ];
+  const perfMetrics = intel?.threat_performance_metrics || [];
 
   return (
     <div className="page-container">
@@ -178,25 +173,35 @@ const ThreatIntelligence = () => {
             <span className="cyber-chip">Model Performance</span>
           </div>
 
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={perfMetrics} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-              <XAxis dataKey="class_name" stroke="#64748B" fontSize={11} tickLine={false} />
-              <YAxis stroke="#64748B" fontSize={11} domain={[90, 100]} tickLine={false} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#0a1628',
-                  borderColor: 'rgba(34, 197, 94, 0.4)',
-                  borderRadius: 8,
-                  color: '#f8fafc',
-                  fontSize: '0.82rem'
-                }}
-                formatter={(value, name) => [`${value}%`, name === 'accuracy' ? 'Detection Accuracy' : 'Avg Confidence']}
-              />
-              <Legend wrapperStyle={{ fontSize: '0.78rem', paddingTop: 6 }} />
-              <Bar dataKey="accuracy" name="Accuracy %" fill="#22C55E" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="confidence" name="Confidence %" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {perfMetrics && perfMetrics.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={perfMetrics} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                <XAxis dataKey="class_name" stroke="#64748B" fontSize={11} tickLine={false} />
+                <YAxis stroke="#64748B" fontSize={11} domain={[0, 100]} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0a1628',
+                    borderColor: 'rgba(34, 197, 94, 0.4)',
+                    borderRadius: 8,
+                    color: '#f8fafc',
+                    fontSize: '0.82rem'
+                  }}
+                  formatter={(value, name) => [value != null ? `${value}%` : 'N/A', name === 'accuracy' ? 'Detection Accuracy' : 'Avg Confidence']}
+                />
+                <Legend wrapperStyle={{ fontSize: '0.78rem', paddingTop: 6 }} />
+                <Bar dataKey="accuracy" name="Accuracy %" fill="#22C55E" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="confidence" name="Confidence %" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ padding: '50px 20px', textAlign: 'center', color: '#64748B' }}>
+              <FaBrain style={{ fontSize: '2.2rem', marginBottom: 12, opacity: 0.5, color: '#3b82f6' }} />
+              <div style={{ fontWeight: 600, color: '#94a3b8', fontSize: '0.95rem' }}>Model evaluation data unavailable</div>
+              <div style={{ fontSize: '0.8rem', marginTop: 4, color: '#64748b' }}>
+                Ground-truth labels are required to calculate per-class accuracy and confidence.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* RECHART 2: Threat Intelligence Risk Score Distribution */}

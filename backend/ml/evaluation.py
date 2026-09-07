@@ -167,6 +167,95 @@ def get_production_model_evaluation(models_dir=None):
     model_file = next((p for p in model_paths if os.path.exists(p)), None)
     if model_file:
         result['is_available'] = True
-        
+
+    # Dynamically evaluate model metrics against ground truth in predictions table
+    try:
+        from database import fetch_all
+        pred_rows = fetch_all("""
+            SELECT actual_label, predicted_label, confidence
+            FROM predictions
+            WHERE actual_label IS NOT NULL
+              AND actual_label NOT IN ('N/A', 'None', '', 'NaN', 'null')
+        """)
+        if pred_rows and len(pred_rows) > 0:
+            y_t = [r['actual_label'] for r in pred_rows]
+            y_p = [r['predicted_label'] for r in pred_rows]
+            eval_res = evaluate_predictions(y_t, y_p)
+            result.update({
+                'has_ground_truth': eval_res.get('has_ground_truth', False),
+                'accuracy': eval_res.get('accuracy'),
+                'precision': eval_res.get('precision'),
+                'recall': eval_res.get('recall'),
+                'f1_score': eval_res.get('f1_score'),
+                'f1': eval_res.get('f1_score'),
+                'total_evaluated': eval_res.get('total_evaluated', len(pred_rows)),
+                'correct_predictions': eval_res.get('correct_predictions'),
+                'wrong_predictions': eval_res.get('wrong_predictions'),
+                'confusion_matrix': eval_res.get('confusion_matrix'),
+                'evaluation_message': eval_res.get('message')
+            })
+
+            # Real per-class accuracy and model confidence
+            per_class = {}
+            for row in pred_rows:
+                cls = row['predicted_label']
+                if cls not in per_class:
+                    per_class[cls] = {'total': 0, 'correct': 0, 'conf_sum': 0.0}
+                per_class[cls]['total'] += 1
+                if row['actual_label'] == row['predicted_label']:
+                    per_class[cls]['correct'] += 1
+                conf = float(row.get('confidence') or 0.0)
+                if conf > 1.0:
+                    conf = conf / 100.0
+                per_class[cls]['conf_sum'] += conf
+
+            class_metrics = []
+            for cls in result['class_names']:
+                info = per_class.get(cls)
+                if info and info['total'] > 0:
+                    cls_acc = round((info['correct'] / info['total']) * 100, 1)
+                    cls_conf = round((info['conf_sum'] / info['total']) * 100, 1)
+                    class_metrics.append({
+                        'class_name': cls,
+                        'accuracy': cls_acc,
+                        'confidence': cls_conf,
+                        'total_samples': info['total']
+                    })
+                else:
+                    class_metrics.append({
+                        'class_name': cls,
+                        'accuracy': None,
+                        'confidence': None,
+                        'total_samples': 0
+                    })
+            result['class_metrics'] = class_metrics
+        else:
+            result.update({
+                'has_ground_truth': False,
+                'accuracy': None,
+                'precision': None,
+                'recall': None,
+                'f1_score': None,
+                'f1': None,
+                'total_evaluated': 0,
+                'correct_predictions': None,
+                'wrong_predictions': None,
+                'confusion_matrix': None,
+                'class_metrics': [],
+                'evaluation_message': 'Ground-truth labels are unavailable for runtime evaluation.'
+            })
+    except Exception as e:
+        logger.warning(f"Note: Could not query predictions for evaluation: {str(e)}")
+        result.update({
+            'has_ground_truth': False,
+            'accuracy': None,
+            'precision': None,
+            'recall': None,
+            'f1_score': None,
+            'f1': None,
+            'class_metrics': [],
+            'evaluation_message': 'Ground-truth labels are unavailable for runtime evaluation.'
+        })
+
     return result
 

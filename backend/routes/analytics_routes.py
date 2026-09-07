@@ -199,33 +199,36 @@ async def get_threat_intelligence(
         rf_eval = {}
 
     acc_val = safe_metric(rf_eval.get("accuracy"))
+    has_gt = rf_eval.get("has_ground_truth", False)
+    class_metrics = rf_eval.get("class_metrics", [])
 
-    threat_performance_metrics = [
-        {
-            "class_name": "BENIGN",
-            "accuracy": acc_val,
-            "confidence": None,
-            "color": "#22C55E",
-        },
-        {
-            "class_name": "DDoS",
-            "accuracy": acc_val,
-            "confidence": None,
-            "color": "#EF4444",
-        },
-        {
-            "class_name": "FTP-Patator",
-            "accuracy": acc_val,
-            "confidence": None,
-            "color": "#F59E0B",
-        },
-        {
-            "class_name": "SSH-Patator",
-            "accuracy": acc_val,
-            "confidence": None,
-            "color": "#F97316",
-        },
-    ]
+    class_colors = {
+        "BENIGN": "#22C55E",
+        "DDoS": "#EF4444",
+        "FTP-Patator": "#F59E0B",
+        "SSH-Patator": "#F97316",
+    }
+
+    threat_performance_metrics = []
+    if has_gt and class_metrics:
+        for cm in class_metrics:
+            cname = cm["class_name"]
+            threat_performance_metrics.append({
+                "class_name": cname,
+                "accuracy": cm.get("accuracy"),
+                "confidence": cm.get("confidence"),
+                "color": class_colors.get(cname, "#3B82F6"),
+            })
+    elif has_gt and acc_val is not None:
+        for cname in ["BENIGN", "DDoS", "FTP-Patator", "SSH-Patator"]:
+            threat_performance_metrics.append({
+                "class_name": cname,
+                "accuracy": acc_val,
+                "confidence": None,
+                "color": class_colors.get(cname, "#3B82F6"),
+            })
+    else:
+        threat_performance_metrics = []
 
     # ------------------------------------------------------------------
     # 5. Critical threats from PostgreSQL
@@ -470,6 +473,21 @@ async def get_weekly_trends(
         """
     )
 
+    if not daily_attack_rows:
+        daily_attack_rows = fetch_all(
+            """
+            SELECT DATE(detected_at) AS day,
+                   COUNT(*) AS attacks,
+                   COUNT(*) FILTER (
+                       WHERE UPPER(severity) = 'CRITICAL'
+                   ) AS critical_count
+            FROM threats
+            WHERE detected_at >= (SELECT MAX(DATE(detected_at)) FROM threats) - INTERVAL '6 days'
+            GROUP BY DATE(detected_at)
+            ORDER BY DATE(detected_at)
+            """
+        )
+
     daily_attack_trend = []
 
     for row in daily_attack_rows:
@@ -516,6 +534,21 @@ async def get_weekly_trends(
         ORDER BY DATE(created_at)
         """
     )
+
+    if not daily_alert_rows:
+        daily_alert_rows = fetch_all(
+            """
+            SELECT DATE(created_at) AS day,
+                   COUNT(*) AS alerts,
+                   COUNT(*) FILTER (
+                       WHERE UPPER(severity) = 'CRITICAL'
+                   ) AS critical_alerts
+            FROM security_alerts
+            WHERE created_at >= (SELECT MAX(DATE(created_at)) FROM security_alerts) - INTERVAL '6 days'
+            GROUP BY DATE(created_at)
+            ORDER BY DATE(created_at)
+            """
+        )
 
     daily_alert_trend = []
 
@@ -564,12 +597,22 @@ async def get_weekly_trends(
         "f1_score": safe_metric(rf_eval.get("f1_score")),
     }
 
-    weekly_summary = {
-        "most_detected_attack": (
+    malicious_attacks = [
+        a for a in attack_type_distribution
+        if a["name"].upper() not in ("BENIGN", "NORMAL")
+    ]
+    most_detected = (
+        malicious_attacks[0]["name"]
+        if malicious_attacks
+        else (
             attack_type_distribution[0]["name"]
             if attack_type_distribution
             else "No data"
-        ),
+        )
+    )
+
+    weekly_summary = {
+        "most_detected_attack": most_detected,
         "highest_risk_day": (
             max(
                 daily_attack_trend,
@@ -798,6 +841,19 @@ async def get_security_analytics(
         """
     )
 
+    if not threat_activity_rows:
+        threat_activity_rows = fetch_all(
+            """
+            SELECT EXTRACT(HOUR FROM detected_at)::int AS hour,
+                   COUNT(*) AS threats,
+                   AVG(risk_score) AS risk
+            FROM threats
+            WHERE detected_at >= (SELECT MAX(detected_at) FROM threats) - INTERVAL '24 hours'
+            GROUP BY EXTRACT(HOUR FROM detected_at)
+            ORDER BY hour
+            """
+        )
+
     threat_activity = []
 
     for row in threat_activity_rows:
@@ -818,9 +874,9 @@ async def get_security_analytics(
     top_sources = fetch_all(
         """
         SELECT source_ip,
-               attack_type,
-               COUNT(*) AS attempts,
-               MAX(severity) AS risk
+                attack_type,
+                COUNT(*) AS attempts,
+                MAX(severity) AS risk
         FROM threats
         WHERE source_ip IS NOT NULL
         GROUP BY source_ip, attack_type
@@ -926,13 +982,36 @@ async def get_security_analytics(
     # ------------------------------------------------------------------
     # Traffic analytics
     # ------------------------------------------------------------------
+    traffic_trend_rows = fetch_all(
+        """
+        SELECT TO_CHAR(timestamp, 'HH24:MI:SS') AS time,
+               COUNT(*) FILTER (WHERE UPPER(predicted_label) IN ('BENIGN', 'NORMAL')) AS benign,
+               COUNT(*) FILTER (WHERE UPPER(predicted_label) NOT IN ('BENIGN', 'NORMAL')) AS threats,
+               COUNT(*) AS total
+        FROM predictions
+        GROUP BY TO_CHAR(timestamp, 'HH24:MI:SS')
+        ORDER BY MIN(timestamp)
+        LIMIT 30
+        """
+    )
+
+    traffic_trend = [
+        {
+            "time": row["time"],
+            "benign": int(row.get("benign") or 0),
+            "threats": int(row.get("threats") or 0),
+            "total": int(row.get("total") or 0),
+        }
+        for row in traffic_trend_rows
+    ]
+
     traffic_analytics = {
         "total_traffic": total_traffic,
         "benign_traffic": benign_count,
         "threat_traffic": total_threats,
         "benign_percentage": benign_pct,
         "threat_percentage": threat_pct,
-        "traffic_trend": [],
+        "traffic_trend": traffic_trend,
     }
 
     # ------------------------------------------------------------------
@@ -965,6 +1044,19 @@ async def get_security_analytics(
         """
     )
 
+    if not attack_trend_rows:
+        attack_trend_rows = fetch_all(
+            """
+            SELECT EXTRACT(HOUR FROM detected_at)::int AS hour,
+                   attack_type,
+                   COUNT(*) AS count
+            FROM threats
+            WHERE detected_at >= (SELECT MAX(detected_at) FROM threats) - INTERVAL '24 hours'
+            GROUP BY EXTRACT(HOUR FROM detected_at), attack_type
+            ORDER BY hour
+            """
+        )
+
     attack_trends_map = {}
 
     for row in attack_trend_rows:
@@ -980,8 +1072,7 @@ async def get_security_analytics(
                 "SSH-Patator": 0,
             }
 
-        if attack_type in attack_trends_map[hour]:
-            attack_trends_map[hour][attack_type] = count
+        attack_trends_map[hour][attack_type] = count
 
     attack_trends = list(attack_trends_map.values())
 
