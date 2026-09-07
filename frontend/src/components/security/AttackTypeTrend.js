@@ -6,7 +6,7 @@ import { FaLayerGroup } from 'react-icons/fa';
 
 const AttackTypeTrend = ({ data = [], height = 280, showTitle = true }) => {
   return (
-    <div className="netshield-card" style={{ width: '100%' }}>
+    <div className="netshield-card" style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
       {showTitle && (
         <div className="netshield-card-header">
           <div className="netshield-card-title">

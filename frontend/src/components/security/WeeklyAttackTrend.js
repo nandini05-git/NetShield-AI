@@ -6,7 +6,7 @@ import { FaChartLine } from 'react-icons/fa';
 
 const WeeklyAttackTrend = ({ data = [], height = 280, showTitle = true }) => {
   return (
-    <div className="netshield-card" style={{ width: '100%' }}>
+    <div className="netshield-card" style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
       {showTitle && (
         <div className="netshield-card-header">
           <div className="netshield-card-title">
@@ -71,31 +71,111 @@ const WeeklyAttackTrend = ({ data = [], height = 280, showTitle = true }) => {
           </AreaChart>
         </ResponsiveContainer>
       ) : data && data.length === 1 ? (
-        <div style={{ padding: '36px 20px', textAlign: 'center', minHeight: height - 60, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 14px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: 20, color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, marginBottom: 14 }}>
-            ● Insufficient trend data
+        <div
+          style={{
+            height,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: '12px 16px',
+            boxSizing: 'border-box'
+          }}
+        >
+          {/* Status Badge */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '3px 12px',
+              background: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              borderRadius: 20,
+              color: '#f59e0b',
+              fontSize: '0.76rem',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              marginBottom: 10
+            }}
+          >
+            <span style={{ fontSize: '0.65rem' }}>●</span> Insufficient trend data
           </div>
-          <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc', marginBottom: 6 }}>
-            Single-Day Telemetry: {data[0].day} ({data[0].display_date || data[0].date})
+
+          {/* Subtitle & Date */}
+          <div style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginBottom: 2 }}>
+            Single-Day Telemetry
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 12, marginBottom: 16 }}>
-            <div style={{ padding: '10px 18px', background: '#0a1628', borderRadius: 6, border: '1px solid #1e3553' }}>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase' }}>Total Incursions</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#22C55E', marginTop: 2 }}>{data[0].attacks?.toLocaleString() || 0}</div>
+          <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', marginBottom: 14 }}>
+            {data[0].day ? (data[0].display_date ? `${data[0].day}, ${data[0].display_date}` : data[0].day) : (data[0].display_date || data[0].date || 'Single-Day')}
+          </div>
+
+          {/* Compact Aligned Metric Cards */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, width: '100%', maxWidth: 360, marginBottom: 14 }}>
+            <div
+              style={{
+                flex: 1,
+                padding: '10px 14px',
+                background: 'rgba(10, 22, 40, 0.85)',
+                borderRadius: 'var(--radius-sm, 6px)',
+                border: '1px solid #1e3553',
+                textAlign: 'center',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
+              }}
+            >
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary-green, #22C55E)', lineHeight: 1.1 }}>
+                {data[0].attacks?.toLocaleString() ?? 0}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, marginTop: 4 }}>
+                Total Incursions
+              </div>
             </div>
-            <div style={{ padding: '10px 18px', background: '#0a1628', borderRadius: 6, border: '1px solid #1e3553' }}>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase' }}>Critical Threats</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#EF4444', marginTop: 2 }}>{data[0].critical_count?.toLocaleString() || 0}</div>
+
+            <div
+              style={{
+                flex: 1,
+                padding: '10px 14px',
+                background: 'rgba(10, 22, 40, 0.85)',
+                borderRadius: 'var(--radius-sm, 6px)',
+                border: '1px solid #1e3553',
+                textAlign: 'center',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)'
+              }}
+            >
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#EF4444', lineHeight: 1.1 }}>
+                {data[0].critical_count?.toLocaleString() ?? 0}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, marginTop: 4 }}>
+                Critical Threats
+              </div>
             </div>
           </div>
-          <div style={{ fontSize: '0.82rem', color: '#64748b', maxWidth: 440 }}>
-            Multi-day time-series trend curves will render automatically once traffic across 2 or more distinct days is ingested.
+
+          {/* Explanatory Message */}
+          <div style={{ fontSize: '0.78rem', color: '#64748b', maxWidth: 420, lineHeight: 1.45 }}>
+            Multi-day trend visualization will appear automatically when verified traffic is available across 2 or more distinct days.
           </div>
         </div>
       ) : (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ fontWeight: 600, color: '#94a3b8', marginBottom: 4 }}>No data available</div>
-          <div style={{ fontSize: '0.82rem' }}>No attack trend telemetry available for the past 7 days.</div>
+        <div
+          style={{
+            height,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: '20px',
+            color: 'var(--text-muted)'
+          }}
+        >
+          <div style={{ fontWeight: 600, color: '#94a3b8', fontSize: '0.95rem', marginBottom: 4 }}>
+            No verified trend data available.
+          </div>
+          <div style={{ fontSize: '0.8rem', color: '#64748b', maxWidth: 360 }}>
+            No attack trend telemetry available for the past 7 days.
+          </div>
         </div>
       )}
     </div>
