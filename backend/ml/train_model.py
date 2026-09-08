@@ -40,11 +40,11 @@ def train_network_anomaly_model(dataset_path=None):
     os.makedirs(models_dir, exist_ok=True)
 
     if dataset_path is None:
-        dataset_path = os.path.join(
-            os.path.dirname(base_dir),
-            "dataset",
-            "sample_network_traffic.csv",
-        )
+        candidate_paths = [
+            os.path.join(base_dir, "dataset", "sample_network_traffic.csv"),
+            os.path.join(os.path.dirname(base_dir), "dataset", "sample_network_traffic.csv"),
+        ]
+        dataset_path = next((p for p in candidate_paths if os.path.exists(p)), candidate_paths[0])
 
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(

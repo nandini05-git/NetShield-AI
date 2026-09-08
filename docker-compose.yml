@@ -12,8 +12,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/complete_postgres_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
-      - ./database/backup_netshield_ai.sql:/docker-entrypoint-initdb.d/02_backup.sql
+      - ./backend/database/complete_postgres_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/database/backup_netshield_ai.sql:/docker-entrypoint-initdb.d/02_backup.sql
     networks:
       - netshield-net
     healthcheck:

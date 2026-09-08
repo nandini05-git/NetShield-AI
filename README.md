@@ -408,11 +408,13 @@ The following tree represents the actual structure of the NetShield AI repositor
 
 ```
 NetShield-AI-Project/
-├── .dockerignore
 ├── .gitignore
 ├── README.md
+├── START_NETSHIELD.bat
+├── STOP_NETSHIELD.bat
 ├── docker-compose.yml
 ├── backend/
+│   ├── .dockerignore
 │   ├── .env.example
 │   ├── Dockerfile
 │   ├── app.py
@@ -423,6 +425,19 @@ NetShield-AI-Project/
 │   ├── requirements.txt
 │   ├── test_fastapi_endpoints.py
 │   ├── train_model.py
+│   ├── database/
+│   │   ├── backup_netshield_ai.sql
+│   │   ├── complete_postgres_schema.sql
+│   │   ├── mongo_schema.json
+│   │   ├── postgres_schema.sql
+│   │   ├── postgres_seed.sql
+│   │   ├── schema.sql
+│   │   └── seed.sql
+│   ├── dataset/
+│   │   ├── README.md
+│   │   ├── generate_sample_dataset.py
+│   │   ├── sample_network_traffic.csv
+│   │   └── samples/
 │   ├── ml/
 │   │   ├── evaluation.py
 │   │   ├── preprocessing.py
@@ -469,22 +484,10 @@ NetShield-AI-Project/
 │   └── uploads/
 │       ├── .gitkeep
 │       └── samples/
-├── database/
-│   ├── backup_netshield_ai.sql
-│   ├── complete_postgres_schema.sql
-│   ├── mongo_schema.json
-│   ├── postgres_schema.sql
-│   ├── postgres_seed.sql
-│   ├── schema.sql
-│   └── seed.sql
-├── dataset/
-│   ├── README.md
-│   ├── generate_sample_dataset.py
-│   ├── sample_network_traffic.csv
-│   └── samples/
 ├── docs/
-│   └── PROJECT_DOCUMENTATION.md
-├── frontend/
+│   ├── PROJECT_DOCUMENTATION.md
+│   └── screenshots/
+└── frontend/
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   ├── package.json
