@@ -1,5 +1,4 @@
 import os
-import psutil
 from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, Request

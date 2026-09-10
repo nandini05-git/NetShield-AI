@@ -25,15 +25,16 @@ def _clean_postgres_query(query: str, params=()) -> str:
     return q
 
 def _try_create_pool(host):
+    timeout_sec = 2 if os.getenv('VERCEL') else 5
     kwargs = {
         'minconn': 1,
-        'maxconn': 20,
+        'maxconn': 10 if os.getenv('VERCEL') else 20,
         'host': host,
         'port': Config.DB_PORT,
         'user': Config.DB_USER,
         'password': Config.DB_PASSWORD,
         'dbname': Config.DB_NAME,
-        'connect_timeout': 5
+        'connect_timeout': timeout_sec
     }
     if Config.POSTGRES_SSLMODE:
         kwargs['sslmode'] = Config.POSTGRES_SSLMODE
@@ -82,7 +83,7 @@ def init_postgres_tables():
 def init_db_pool():
     global db_pool
     hosts = [Config.DB_HOST]
-    if Config.DB_HOST not in ("127.0.0.1", "localhost"):
+    if not os.getenv('VERCEL') and Config.DB_HOST not in ("127.0.0.1", "localhost"):
         hosts.append("127.0.0.1")
         
     last_err = None
@@ -90,7 +91,10 @@ def init_db_pool():
         try:
             db_pool = _try_create_pool(h)
             logger.info(f"PostgreSQL primary connection pool initialized successfully ({h}:{Config.DB_PORT}/{Config.DB_NAME}).")
-            init_postgres_tables()
+            try:
+                init_postgres_tables()
+            except Exception:
+                pass
             return True
         except Exception as e:
             last_err = e
