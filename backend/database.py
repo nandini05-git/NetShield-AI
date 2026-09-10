@@ -57,6 +57,14 @@ def init_postgres_tables():
                 with open(seed_path, 'r', encoding='utf-8') as f:
                     seed_sql = f.read()
                 cur.execute(seed_sql)
+            cur.execute("""
+                UPDATE users 
+                SET password_hash = 'scrypt:32768:8:1$BzF6ep40u2fQMmEU$aaa34192466fb8c02bf8509a385988f983cf8ac0eb0c6500771fef8ae15b3b2ba4d7a4e6ec7f6a55d7e540cef5586f5facfac3bdf6796b14de121b65c1e0373f'
+                WHERE email = 'admin@netshield.ai';
+                UPDATE users 
+                SET password_hash = 'scrypt:32768:8:1$piLoX0a4POvwDDkm$82df5c8fcb0086e6c0ba83e800b5384108c5415787b2416825f4548a39883f9ed6f9763d1d4bd6448641c6472aa100d5e01bd3f0a8121c6b79093bfd3cf5676f'
+                WHERE email = 'analyst@netshield.ai';
+            """)
         conn.commit()
         logger.info("PostgreSQL schema and baseline seed verification complete.")
         return True

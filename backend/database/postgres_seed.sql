@@ -1,11 +1,11 @@
 -- NetShield AI PostgreSQL Seed Data
 
--- 1. Seed Users (Admin: AdminPassword123! / admin@netshield.ai, Analyst: analyst@netshield.ai)
+-- 1. Seed Users (Admin: Admin@123 / admin@netshield.ai, Analyst: Analyst@123 / analyst@netshield.ai)
 INSERT INTO users (name, email, password_hash, role, status)
 VALUES
-('SOC Administrator', 'admin@netshield.ai', 'scrypt:32768:8:1$QdWHcvJFjnod7ZEM$26a186315f9236b6d1387dfd68924f7eff9463be7a390dc1fc86e6b683ef52721f6c292f580390fc2f4ae200262e965d0606b2b8838af120b575da93f02996b7', 'ADMIN', 'ACTIVE'),
-('Security Analyst', 'analyst@netshield.ai', 'scrypt:32768:8:1$bS8wK0tdCfAJAH7E$859141465e3bfeba438c73deb1d18e8b61bcc9092ed40b8952c8af9d1a42a21e073ecb2d00ebaadb74426c2737caed233d23ac67e9efd51474848fdbceaa817d', 'SECURITY_ANALYST', 'ACTIVE')
-ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, status = EXCLUDED.status;
+('SOC Administrator', 'admin@netshield.ai', 'scrypt:32768:8:1$BzF6ep40u2fQMmEU$aaa34192466fb8c02bf8509a385988f983cf8ac0eb0c6500771fef8ae15b3b2ba4d7a4e6ec7f6a55d7e540cef5586f5facfac3bdf6796b14de121b65c1e0373f', 'ADMIN', 'ACTIVE'),
+('Security Analyst', 'analyst@netshield.ai', 'scrypt:32768:8:1$piLoX0a4POvwDDkm$82df5c8fcb0086e6c0ba83e800b5384108c5415787b2416825f4548a39883f9ed6f9763d1d4bd6448641c6472aa100d5e01bd3f0a8121c6b79093bfd3cf5676f', 'SECURITY_ANALYST', 'ACTIVE')
+ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, password_hash = EXCLUDED.password_hash, status = EXCLUDED.status;
 
 -- 2. Seed Initial Audit Log
 INSERT INTO audit_logs (user_id, action, module, ip_address)
