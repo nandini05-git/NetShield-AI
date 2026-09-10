@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import api from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 import { useRefresh } from '../context/RefreshContext';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';

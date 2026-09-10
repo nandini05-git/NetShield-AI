@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 import LoadingState from '../components/LoadingState';
 import SeverityBadge from '../components/SeverityBadge';
 import {
