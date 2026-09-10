@@ -1,0 +1,80 @@
+{
+    "title": "NetShield AI \u2014 Threat Detection Security Report",
+    "generated_at": "2026-09-03T16:30:58.623260+00:00",
+    "generated_by": "System Admin",
+    "total_traffic": 7550,
+    "benign_traffic": 4116,
+    "malicious_traffic": 3434,
+    "total_threats_detected": 3434,
+    "attack_breakdown": [
+        {
+            "attack_type": "DDoS",
+            "count": 2165
+        },
+        {
+            "attack_type": "FTP-Patator",
+            "count": 631
+        },
+        {
+            "attack_type": "BENIGN",
+            "count": 4116
+        },
+        {
+            "attack_type": "SSH-Patator",
+            "count": 638
+        }
+    ],
+    "severity_breakdown": [
+        {
+            "severity": "LOW",
+            "count": 4116
+        },
+        {
+            "severity": "MEDIUM",
+            "count": 631
+        },
+        {
+            "severity": "HIGH",
+            "count": 638
+        },
+        {
+            "severity": "CRITICAL",
+            "count": 2165
+        }
+    ],
+    "alerts_summary": [
+        {
+            "status": "NEW",
+            "count": 193
+        },
+        {
+            "status": "ACKNOWLEDGED",
+            "count": 6
+        },
+        {
+            "status": "INVESTIGATING",
+            "count": 12
+        },
+        {
+            "status": "RESOLVED",
+            "count": 1
+        }
+    ],
+    "incidents_summary": [
+        {
+            "status": "OPEN",
+            "count": 212
+        },
+        {
+            "status": "RESOLVED",
+            "count": 10
+        },
+        {
+            "status": "CLOSED",
+            "count": 1
+        }
+    ],
+    "resolved_incidents": 10,
+    "unresolved_incidents": 213,
+    "latest_dataset_analyzed": "test_sample.csv"
+}
