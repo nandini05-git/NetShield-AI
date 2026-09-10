@@ -83,7 +83,7 @@ const Upload = () => {
   };
 
   const handleDownloadSample = (sampleId) => {
-    window.open(`http://localhost:5000/api/datasets/download-sample/${sampleId}`, '_blank');
+    window.open(`${API_BASE_URL}/datasets/download-sample/${sampleId}`, '_blank');
   };
 
   return (

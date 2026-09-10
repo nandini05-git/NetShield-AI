@@ -3,6 +3,12 @@ from datetime import datetime
 from pymongo import MongoClient, ASCENDING, DESCENDING
 from config import Config
 
+try:
+    import certifi
+    ca_file = certifi.where()
+except ImportError:
+    ca_file = None
+
 logger = logging.getLogger(__name__)
 
 mongo_client = None
@@ -14,7 +20,12 @@ def init_mongo():
     if _mongo_checked and mongo_db is not None:
         return True
     try:
-        mongo_client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=500)
+        timeout_ms = getattr(Config, 'MONGO_TIMEOUT_MS', 5000)
+        kwargs = {'serverSelectionTimeoutMS': timeout_ms}
+        if ca_file and ('+srv://' in Config.MONGO_URI or 'tls=true' in Config.MONGO_URI.lower()):
+            kwargs['tlsCAFile'] = ca_file
+
+        mongo_client = MongoClient(Config.MONGO_URI, **kwargs)
         mongo_db = mongo_client[Config.MONGO_DB_NAME]
         
         # Test connection

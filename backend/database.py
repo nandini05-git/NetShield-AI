@@ -1,4 +1,4 @@
-﻿import os
+import os
 import re
 import logging
 import psycopg2
@@ -25,16 +25,51 @@ def _clean_postgres_query(query: str, params=()) -> str:
     return q
 
 def _try_create_pool(host):
-    return psycopg2.pool.ThreadedConnectionPool(
-        minconn=1,
-        maxconn=20,
-        host=host,
-        port=Config.DB_PORT,
-        user=Config.DB_USER,
-        password=Config.DB_PASSWORD,
-        dbname=Config.DB_NAME,
-        connect_timeout=3
-    )
+    kwargs = {
+        'minconn': 1,
+        'maxconn': 20,
+        'host': host,
+        'port': Config.DB_PORT,
+        'user': Config.DB_USER,
+        'password': Config.DB_PASSWORD,
+        'dbname': Config.DB_NAME,
+        'connect_timeout': 5
+    }
+    if Config.POSTGRES_SSLMODE:
+        kwargs['sslmode'] = Config.POSTGRES_SSLMODE
+    return psycopg2.pool.ThreadedConnectionPool(**kwargs)
+
+def init_postgres_tables():
+    conn = get_db_connection()
+    if not conn:
+        return False
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        schema_path = os.path.join(base_dir, 'database', 'complete_postgres_schema.sql')
+        seed_path = os.path.join(base_dir, 'database', 'postgres_seed.sql')
+
+        with conn.cursor() as cur:
+            if os.path.exists(schema_path):
+                with open(schema_path, 'r', encoding='utf-8') as f:
+                    schema_sql = f.read()
+                cur.execute(schema_sql)
+            if os.path.exists(seed_path):
+                with open(seed_path, 'r', encoding='utf-8') as f:
+                    seed_sql = f.read()
+                cur.execute(seed_sql)
+        conn.commit()
+        logger.info("PostgreSQL schema and baseline seed verification complete.")
+        return True
+    except Exception as e:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        logger.warning(f"Note on PostgreSQL table initialization: {str(e)}")
+        return False
+    finally:
+        put_db_connection(conn)
 
 def init_db_pool():
     global db_pool
@@ -47,11 +82,12 @@ def init_db_pool():
         try:
             db_pool = _try_create_pool(h)
             logger.info(f"PostgreSQL primary connection pool initialized successfully ({h}:{Config.DB_PORT}/{Config.DB_NAME}).")
+            init_postgres_tables()
             return True
         except Exception as e:
             last_err = e
             
-    logger.error(f"Failed to initialize PostgreSQL pool across {hosts}: {str(last_err)}")
+    logger.error(f"Failed to initialize PostgreSQL pool across hosts: {str(last_err)}")
     db_pool = None
     return False
 
@@ -88,14 +124,17 @@ def get_db_connection():
             logger.error(f"Error getting connection from PostgreSQL pool: {str(e)}")
             for h in [Config.DB_HOST, "127.0.0.1"]:
                 try:
-                    return psycopg2.connect(
-                        host=h,
-                        port=Config.DB_PORT,
-                        user=Config.DB_USER,
-                        password=Config.DB_PASSWORD,
-                        dbname=Config.DB_NAME,
-                        connect_timeout=3
-                    )
+                    kwargs = {
+                        'host': h,
+                        'port': Config.DB_PORT,
+                        'user': Config.DB_USER,
+                        'password': Config.DB_PASSWORD,
+                        'dbname': Config.DB_NAME,
+                        'connect_timeout': 5
+                    }
+                    if Config.POSTGRES_SSLMODE:
+                        kwargs['sslmode'] = Config.POSTGRES_SSLMODE
+                    return psycopg2.connect(**kwargs)
                 except Exception:
                     continue
     return None

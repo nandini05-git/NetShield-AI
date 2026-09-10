@@ -114,12 +114,20 @@ app = FastAPI(
 )
 
 # Enable CORS for React frontend
+raw_origins = [o.strip() for o in getattr(Config, 'ALLOWED_ORIGINS', '*').split(',') if o.strip()]
+if '*' in raw_origins or not raw_origins:
+    cors_origins = ['*']
+    cors_credentials = False
+else:
+    cors_origins = raw_origins
+    cors_credentials = True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=cors_origins,
+    allow_credentials=cors_credentials,
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 # Import routers

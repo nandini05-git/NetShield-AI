@@ -10,11 +10,19 @@ system_bp = system_router
 
 @system_router.get('/health')
 async def health_check():
+    pg_ok = check_db_connection()
+    mg_ok = check_mongo_connection()
+    if pg_ok and mg_ok:
+        status_str = 'HEALTHY'
+    elif pg_ok:
+        status_str = 'DEGRADED'
+    else:
+        status_str = 'UNHEALTHY'
     return {
-        'status': 'HEALTHY',
+        'status': status_str,
         'backend': 'FastAPI',
-        'postgresql': 'CONNECTED' if check_db_connection() else 'STANDBY',
-        'mongodb': 'CONNECTED' if check_mongo_connection() else 'STANDBY',
+        'postgresql': 'CONNECTED' if pg_ok else 'STANDBY',
+        'mongodb': 'CONNECTED' if mg_ok else 'STANDBY',
         'timestamp': datetime.now().isoformat()
     }
 

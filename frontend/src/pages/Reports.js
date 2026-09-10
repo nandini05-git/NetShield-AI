@@ -55,7 +55,7 @@ const Reports = () => {
 
   const handleDownload = (filename) => {
     if (!filename) return;
-    const downloadUrl = `http://localhost:5000/api/reports/download/${filename}`;
+    const downloadUrl = `${API_BASE_URL}/reports/download/${filename}`;
     window.open(downloadUrl, '_blank');
   };
 

@@ -9,6 +9,8 @@ werkzeug>=3.0.0
 
 psycopg2-binary>=2.9.9
 pymongo>=4.7.0
+dnspython>=2.6.0
+certifi>=2024.2.2
 
 scikit-learn>=1.4.0
 pandas>=2.2.0
