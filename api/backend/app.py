@@ -93,14 +93,28 @@ def load_ml_model():
 async def lifespan(app: FastAPI):
     logger.info("Initializing NetShield AI Backend Services...")
 
-    init_db_pool()
-    init_mongo()
-    load_ml_model()
+    try:
+        init_db_pool()
+    except Exception as exc:
+        logger.warning("PostgreSQL initialization deferred: %s", exc)
+
+    try:
+        init_mongo()
+    except Exception as exc:
+        logger.warning("MongoDB initialization deferred: %s", exc)
+
+    try:
+        load_ml_model()
+    except Exception as exc:
+        logger.warning("ML Model loading deferred: %s", exc)
 
     yield
 
     logger.info("Shutting down NetShield AI Backend Services...")
-    close_db_pool()
+    try:
+        close_db_pool()
+    except Exception:
+        pass
 
 
 app = FastAPI(
