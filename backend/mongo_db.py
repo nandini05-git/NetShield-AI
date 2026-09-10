@@ -22,8 +22,12 @@ def init_mongo():
     try:
         timeout_ms = getattr(Config, 'MONGO_TIMEOUT_MS', 5000)
         kwargs = {'serverSelectionTimeoutMS': timeout_ms}
-        if ca_file and ('+srv://' in Config.MONGO_URI or 'tls=true' in Config.MONGO_URI.lower()):
-            kwargs['tlsCAFile'] = ca_file
+        if '+srv://' in Config.MONGO_URI or 'tls=true' in Config.MONGO_URI.lower() or 'ssl=true' in Config.MONGO_URI.lower():
+            kwargs['tls'] = True
+            if ca_file:
+                kwargs['tlsCAFile'] = ca_file
+            if os.getenv('MONGO_TLS_INSECURE', 'false').lower() in ('true', '1', 'yes'):
+                kwargs['tlsAllowInvalidCertificates'] = True
 
         mongo_client = MongoClient(Config.MONGO_URI, **kwargs)
         mongo_db = mongo_client[Config.MONGO_DB_NAME]
