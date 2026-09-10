@@ -6,8 +6,8 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, '.env'), override=False)
 
 def _parse_db_env():
-    # Priority: DATABASE_URL -> POSTGRES_HOST / DB_HOST connection string -> individual vars
-    db_url = os.getenv('DATABASE_URL') or os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST', '')
+    # Priority: DATABASE_URL -> INTERNAL_DATABASE_URL -> POSTGRES_HOST / DB_HOST connection string -> individual vars
+    db_url = os.getenv('DATABASE_URL') or os.getenv('INTERNAL_DATABASE_URL') or ''
     parsed_host = '127.0.0.1'
     parsed_port = 5432
     parsed_user = 'postgres'
