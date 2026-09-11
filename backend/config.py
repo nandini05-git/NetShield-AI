@@ -54,8 +54,15 @@ def _parse_db_env():
 
 _parsed_host, _parsed_port, _parsed_user, _parsed_pass, _parsed_name = _parse_db_env()
 
-is_serverless = bool(os.getenv('VERCEL') or os.getenv('AWS_LAMBDA_FUNCTION_NAME'))
-tmp_writable = '/tmp' if is_serverless else BASE_DIR
+def _is_serverless_env():
+    if os.getenv('VERCEL') or os.getenv('VERCEL_ENV') or os.getenv('AWS_LAMBDA_FUNCTION_NAME') or os.getenv('LAMBDA_TASK_ROOT'):
+        return True
+    if '/var/task' in os.path.abspath(__file__):
+        return True
+    return False
+
+is_serverless = _is_serverless_env()
+tmp_writable = '/tmp/netshield' if is_serverless else BASE_DIR
 
 class Config:
     # Relational Database (PostgreSQL is the active primary engine)
