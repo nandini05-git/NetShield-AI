@@ -10,6 +10,11 @@ for path in [BACKEND_DIR, PARENT_DIR]:
         sys.path.insert(0, path)
 
 try:
-    from app import app
+    from app import app as _backend_app
 except ImportError:
-    from backend.app import app
+    from backend.app import app as _backend_app
+
+app = _backend_app
+application = _backend_app
+handler = _backend_app
+
