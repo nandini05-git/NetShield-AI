@@ -193,8 +193,13 @@ app.include_router(system_router, prefix="/api", tags=["System"])
 app.include_router(user_router, prefix="/api", tags=["Users"])
 app.include_router(audit_router, prefix="/api", tags=["Audit"])
 
+@app.get('/', tags=['Root'])
+async def root_ping():
+    return {'name': 'NetShield AI API', 'status': 'HEALTHY', 'version': '2.0.0', 'engine': 'FastAPI + Random Forest'}
+
 # Root-level paths for backwards compatibility
 app.include_router(auth_router, prefix="/auth", include_in_schema=False)
+app.include_router(auth_router, prefix="", include_in_schema=False)
 app.include_router(dashboard_router, prefix="", include_in_schema=False)
 app.include_router(upload_router, prefix="", include_in_schema=False)
 app.include_router(network_router, prefix="", include_in_schema=False)
