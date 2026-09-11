@@ -13,15 +13,39 @@ def _safe_int(val, default=5432):
         return default
 
 def _parse_db_env():
-    # Priority: DATABASE_URL -> INTERNAL_DATABASE_URL -> POSTGRES_URL -> POSTGRESQL_URL -> POSTGRES_HOST / DB_HOST connection string -> individual vars
-    db_url = os.getenv('DATABASE_URL') or os.getenv('INTERNAL_DATABASE_URL') or os.getenv('POSTGRES_URL') or os.getenv('POSTGRESQL_URL') or ''
+    # Priority:
+    # 1. Explicit individual POSTGRES_HOST / DB_HOST if not localhost
+    # 2. EXTERNAL_DATABASE_URL / DATABASE_URL / POSTGRES_URL
+    # 3. INTERNAL_DATABASE_URL
+    explicit_host = os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST')
+    
+    db_url = (
+        os.getenv('EXTERNAL_DATABASE_URL') or 
+        os.getenv('DATABASE_URL') or 
+        os.getenv('POSTGRES_URL') or 
+        os.getenv('POSTGRESQL_URL') or 
+        ''
+    )
+    
+    # If explicit host was provided as a full connection string:
+    if explicit_host and (explicit_host.startswith('postgresql://') or explicit_host.startswith('postgres://')):
+        db_url = explicit_host
+        explicit_host = None
+
     parsed_host = '127.0.0.1'
     parsed_port = 5432
     parsed_user = 'postgres'
     parsed_pass = 'postgres'
     parsed_name = 'netshield_ai'
+    parsed_ssl = os.getenv('POSTGRES_SSLMODE')
 
-    if db_url and (db_url.startswith('postgresql://') or db_url.startswith('postgres://')):
+    if explicit_host:
+        parsed_host = explicit_host
+        parsed_port = _safe_int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', 5432)), 5432)
+        parsed_user = os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'postgres'))
+        parsed_pass = os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', 'postgres'))
+        parsed_name = os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'netshield_ai'))
+    elif db_url and (db_url.startswith('postgresql://') or db_url.startswith('postgres://')):
         try:
             res = urlparse(db_url)
             parsed_host = res.hostname or '127.0.0.1'
@@ -29,30 +53,41 @@ def _parse_db_env():
             parsed_user = res.username or 'postgres'
             parsed_pass = res.password or ''
             parsed_name = res.path.lstrip('/') if res.path else 'netshield_ai'
+            if res.query and 'sslmode=' in res.query:
+                import urllib.parse
+                qs = urllib.parse.parse_qs(res.query)
+                if 'sslmode' in qs:
+                    parsed_ssl = qs['sslmode'][0]
         except Exception:
             pass
-    else:
-        raw_host = os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', '127.0.0.1'))
-        if raw_host.startswith('postgresql://') or raw_host.startswith('postgres://'):
-            try:
-                res = urlparse(raw_host)
-                parsed_host = res.hostname or '127.0.0.1'
-                parsed_port = res.port or _safe_int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', 5432)), 5432)
-                parsed_user = res.username or os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'postgres'))
-                parsed_pass = res.password or os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', 'postgres'))
-                parsed_name = res.path.lstrip('/') if res.path else os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'netshield_ai'))
-            except Exception:
-                parsed_host = raw_host
+    elif os.getenv('INTERNAL_DATABASE_URL'):
+        int_url = os.getenv('INTERNAL_DATABASE_URL')
+        try:
+            res = urlparse(int_url)
+            parsed_host = res.hostname or '127.0.0.1'
+            parsed_port = res.port or 5432
+            parsed_user = res.username or 'postgres'
+            parsed_pass = res.password or ''
+            parsed_name = res.path.lstrip('/') if res.path else 'netshield_ai'
+        except Exception:
+            pass
+
+    # If the hostname is a Render internal ID without domain on external/serverless environment:
+    # (e.g. "dpg-dah1oim1egvs73c6s1mg-a" without any domain suffix)
+    if parsed_host and '.' not in parsed_host and parsed_host not in ('127.0.0.1', 'localhost'):
+        if parsed_host.startswith('dpg-'):
+            parsed_host = f"{parsed_host}.oregon-postgres.render.com"
+
+    # Default SSL mode for external cloud PostgreSQL
+    if not parsed_ssl:
+        if parsed_host not in ('127.0.0.1', 'localhost'):
+            parsed_ssl = 'require'
         else:
-            parsed_host = raw_host
-            parsed_port = _safe_int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', 5432)), 5432)
-            parsed_user = os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'postgres'))
-            parsed_pass = os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', 'postgres'))
-            parsed_name = os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'netshield_ai'))
+            parsed_ssl = 'prefer'
 
-    return parsed_host, parsed_port, parsed_user, parsed_pass, parsed_name
+    return parsed_host, parsed_port, parsed_user, parsed_pass, parsed_name, parsed_ssl
 
-_parsed_host, _parsed_port, _parsed_user, _parsed_pass, _parsed_name = _parse_db_env()
+_parsed_host, _parsed_port, _parsed_user, _parsed_pass, _parsed_name, _parsed_ssl = _parse_db_env()
 
 def _is_serverless_env():
     if os.getenv('VERCEL') or os.getenv('VERCEL_ENV') or os.getenv('AWS_LAMBDA_FUNCTION_NAME') or os.getenv('LAMBDA_TASK_ROOT'):
@@ -72,7 +107,7 @@ class Config:
     DB_USER = _parsed_user
     DB_PASSWORD = _parsed_pass
     DB_NAME = _parsed_name
-    POSTGRES_SSLMODE = os.getenv('POSTGRES_SSLMODE', 'prefer')
+    POSTGRES_SSLMODE = _parsed_ssl
     
     # Document Database (MongoDB for detailed telemetry events, raw PCAP/Zeek, and threat intel cache)
     MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017')

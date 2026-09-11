@@ -25,7 +25,7 @@ def _clean_postgres_query(query: str, params=()) -> str:
     return q
 
 def _try_create_pool(host):
-    timeout_sec = 2 if os.getenv('VERCEL') else 5
+    timeout_sec = int(os.getenv('POSTGRES_TIMEOUT', 10))
     kwargs = {
         'minconn': 1,
         'maxconn': 10 if os.getenv('VERCEL') else 20,
@@ -82,12 +82,25 @@ def init_postgres_tables():
 
 def init_db_pool():
     global db_pool
-    hosts = [Config.DB_HOST]
-    if not os.getenv('VERCEL') and Config.DB_HOST not in ("127.0.0.1", "localhost"):
-        hosts.append("127.0.0.1")
+    candidates = []
+    
+    if Config.DB_HOST:
+        candidates.append(Config.DB_HOST)
+        if '.' not in Config.DB_HOST and Config.DB_HOST not in ("127.0.0.1", "localhost"):
+            for region in [
+                "oregon-postgres.render.com",
+                "frankfurt-postgres.render.com",
+                "singapore-postgres.render.com",
+                "ohio-postgres.render.com",
+                "virginia-postgres.render.com"
+            ]:
+                candidates.append(f"{Config.DB_HOST}.{region}")
+                
+    if not os.getenv('VERCEL') and "127.0.0.1" not in candidates:
+        candidates.append("127.0.0.1")
         
     last_err = None
-    for h in hosts:
+    for h in candidates:
         try:
             db_pool = _try_create_pool(h)
             logger.info(f"PostgreSQL primary connection pool initialized successfully ({h}:{Config.DB_PORT}/{Config.DB_NAME}).")

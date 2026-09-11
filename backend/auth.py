@@ -62,22 +62,45 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
         )
     
     # Lookup user in PostgreSQL
-    current_user = fetch_one("SELECT id, name, email, role, status FROM users WHERE id = %s", (data['user_id'],))
+    current_user = None
+    try:
+        current_user = fetch_one("SELECT id, name, email, role, status FROM users WHERE id = %s", (data.get('user_id'),))
+    except Exception:
+        pass
+
     if not current_user:
-        # If DB is not connected or user is fallback admin from token
-        if data.get('email') in ('admin@netshield.ai', 'analyst@netshield.ai'):
-            return {
+        # Check MongoDB users collection
+        try:
+            from mongo_db import get_mongo_db
+            mdb = get_mongo_db()
+            if mdb is not None:
+                m_user = mdb.users.find_one({"email": data.get('email')})
+                if m_user:
+                    current_user = {
+                        'id': data.get('user_id', 1),
+                        'name': m_user.get('name', 'User'),
+                        'email': m_user.get('email', data.get('email')),
+                        'role': m_user.get('role', data.get('role', 'SECURITY_ANALYST')),
+                        'status': m_user.get('status', 'ACTIVE')
+                    }
+        except Exception:
+            pass
+
+    if not current_user:
+        if data.get('email'):
+            current_user = {
                 'id': data.get('user_id', 1),
-                'name': 'SOC Administrator' if data.get('email') == 'admin@netshield.ai' else 'Security Analyst',
+                'name': data.get('name') or data.get('email').split('@')[0].capitalize(),
                 'email': data.get('email'),
-                'role': data.get('role', 'ADMIN'),
+                'role': data.get('role', 'SECURITY_ANALYST'),
                 'status': 'ACTIVE'
             }
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User account not found.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User account not found.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         
     if current_user.get('status') != 'ACTIVE':
         raise HTTPException(
