@@ -1,0 +1,60 @@
+{
+    "title": "NetShield AI \u2014 Threat Detection Report",
+    "generated_at": "2026-09-01T03:03:00.876735",
+    "generated_by": "nandini",
+    "total_records_analyzed": 500,
+    "total_threats_detected": 224,
+    "attack_breakdown": [
+        {
+            "attack_type": "DDoS",
+            "count": 141
+        },
+        {
+            "attack_type": "FTP-Patator",
+            "count": 42
+        },
+        {
+            "attack_type": "BENIGN",
+            "count": 276
+        },
+        {
+            "attack_type": "SSH-Patator",
+            "count": 41
+        }
+    ],
+    "severity_breakdown": [
+        {
+            "severity": "LOW",
+            "count": 276
+        },
+        {
+            "severity": "MEDIUM",
+            "count": 42
+        },
+        {
+            "severity": "HIGH",
+            "count": 41
+        },
+        {
+            "severity": "CRITICAL",
+            "count": 141
+        }
+    ],
+    "alerts_summary": [
+        {
+            "status": "NEW",
+            "count": 181
+        },
+        {
+            "status": "ACKNOWLEDGED",
+            "count": 1
+        }
+    ],
+    "incidents_summary": [
+        {
+            "status": "OPEN",
+            "count": 141
+        }
+    ],
+    "latest_dataset_analyzed": "sample_network_traffic.csv"
+}
