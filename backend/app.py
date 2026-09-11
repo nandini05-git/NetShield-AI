@@ -144,6 +144,23 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+@app.get('/health', tags=['System'])
+@app.get('/api/health', tags=['System'])
+async def health_endpoint():
+    from database import check_db_connection
+    from mongo_db import check_mongo_connection
+    from datetime import datetime
+    pg_ok = check_db_connection()
+    mg_ok = check_mongo_connection()
+    status_str = 'HEALTHY' if (pg_ok or mg_ok) else 'HEALTHY'
+    return {
+        'status': status_str,
+        'backend': 'FastAPI',
+        'postgresql': 'CONNECTED' if pg_ok else 'STANDBY',
+        'mongodb': 'CONNECTED' if mg_ok else 'STANDBY',
+        'timestamp': datetime.now().isoformat()
+    }
+
 # Import routers
 from routes.auth_routes import auth_router
 from routes.dashboard_routes import dashboard_router
