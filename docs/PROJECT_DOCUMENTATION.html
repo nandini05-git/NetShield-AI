@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NetShield AI - Master Technical Documentation</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 18mm 18mm 18mm 18mm;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1e293b;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  
+  .page {
+    width: 100%;
+    page-break-after: always;
+    break-after: page;
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  @media print {
+    body {
+      background: #ffffff;
+      padding: 0;
+    }
+    .page {
+      width: 100%;
+      page-break-after: always !important;
+      break-after: page !important;
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  /* COVER PAGE */
+  .cover-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-top: 80px;
+    min-height: 750px;
+  }
+  .cover-header {
+    margin-bottom: 50px;
+  }
+  .cover-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #0f2b48;
+    letter-spacing: 1.5px;
+    margin: 0 0 16px 0;
+  }
+  .cover-subtitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0284c7;
+    margin: 0 0 8px 0;
+  }
+  .cover-subheading {
+    font-size: 15px;
+    font-weight: 500;
+    color: #0f766e;
+    margin: 0;
+  }
+  .cover-meta-table {
+    width: 95%;
+    margin: 0 auto;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+  }
+  .cover-meta-table td {
+    padding: 14px 18px;
+    border: 1px solid #e2e8f0;
+  }
+  .meta-label {
+    font-weight: 700;
+    color: #0f172a;
+    background-color: #f8fafc;
+    width: 36%;
+  }
+  .meta-value {
+    color: #334155;
+    background-color: #ffffff;
+    width: 64%;
+  }
+
+  /* SECTION HEADINGS */
+  .section-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 12px 0;
+    letter-spacing: 0.2px;
+  }
+
+  /* PARAGRAPHS */
+  p {
+    margin: 0 0 12px 0;
+    color: #334155;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .para-justify {
+    text-align: justify;
+  }
+
+  /* LISTS & BULLETS */
+  .toc-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+  }
+  .toc-list li {
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    color: #334155;
+    line-height: 1.55;
+  }
+  .toc-list .bullet {
+    color: #0284c7;
+    font-weight: bold;
+    margin-right: 8px;
+  }
+
+  .bullet-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0 0 14px 0;
+  }
+  .bullet-list li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 10px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: #334155;
+    text-align: justify;
+  }
+  .bullet-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #0f172a;
+    font-size: 16px;
+    line-height: 1;
+    top: 0;
+  }
+
+  /* CODE & DIAGRAM BOXES */
+  .code-box {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: Consolas, Monaco, "Courier New", monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre;
+    overflow: hidden;
+    margin: 0 0 16px 0;
+  }
+
+  /* DATA TABLES */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 16px 0;
+    font-size: 11.5px;
+  }
+  .data-table th {
+    background-color: #0f2b48;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 9px 12px;
+    text-align: left;
+    border: 1px solid #0f2b48;
+  }
+  .data-table td {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+  }
+  .data-table tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+
+  /* FIGURE CAPTION */
+  .figure-caption {
+    font-style: italic;
+    color: #475569;
+    font-size: 11.5px;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  code {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 11.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page cover-page">
+    <div class="cover-header">
+        <h1 class="cover-title">NETSHIELD AI</h1>
+        <h2 class="cover-subtitle">AI-Powered Network Anomaly Detection & Threat Monitoring System</h2>
+        <h3 class="cover-subheading">Master Technical Project Documentation</h3>
+    </div>
+    
+    <table class="cover-meta-table">
+        <tr>
+            <td class="meta-label">Document Version:</td>
+            <td class="meta-value">4.0.0 (Production Release & Cloud Database Parity)</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Author / Student:</td>
+            <td class="meta-value"><strong>Vankanavath Nandini</strong></td>
+        </tr>
+        <tr>
+            <td class="meta-label">Backend Architecture:</td>
+            <td class="meta-value">Python 3.11/3.14 + FastAPI Asynchronous ASGI REST API Server</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Frontend Architecture:</td>
+            <td class="meta-value">React 18 / Vite / Tailwind CSS / Chart.js (19 SOC Pages)</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Database Cluster:</td>
+            <td class="meta-value">PostgreSQL 16 Relational + MongoDB Atlas Cloud Cluster (7 Collections)</td>
+        </tr>
+        <tr>
+            <td class="meta-label">ML Detection Engine:</td>
+            <td class="meta-value">Python Scikit-Learn (Random Forest, XGBoost, One-Class SVM)</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Production Hosting:</td>
+            <td class="meta-value">Vercel Cloud Monorepo Infrastructure</td>
+        </tr>
+    </table>
+</div>
+
+<div class="page">
+    <h1 class="section-title" style="font-size: 22px; margin-bottom: 22px;">Table of Contents</h1>
+    
+    <ul class="toc-list">
+        <li><span class="bullet">•</span> 1. Executive Overview & Title Metadata</li>
+        <li><span class="bullet">•</span> 2. Abstract</li>
+        <li><span class="bullet">•</span> 3. Introduction & Cybersecurity Context</li>
+        <li><span class="bullet">•</span> 4. Problem Statement & Operational Challenges</li>
+        <li><span class="bullet">•</span> 5. System Objectives & Technical Goals</li>
+        <li><span class="bullet">•</span> 6. Proposed Solution & SOC Pipeline</li>
+        <li><span class="bullet">•</span> 7. FastAPI & Python System Architecture</li>
+        <li><span class="bullet">•</span> 8. End-to-End Data Flow & Packet Lifecycle</li>
+        <li><span class="bullet">•</span> 9. Dataset Details (CICIDS2017 & UNSW-NB15)</li>
+        <li><span class="bullet">•</span> 10. Machine Learning Module & Risk Scoring Engine</li>
+        <li><span class="bullet">•</span> 11. Milestone-wise System Evolution (M1 to M4)</li>
+        <li><span class="bullet">•</span> 12. Role-Based Access Control (RBAC) Matrix</li>
+        <li><span class="bullet">•</span> 13. Frontend React 18 Application & Screenshots</li>
+        <li><span class="bullet">•</span> 14. Backend FastAPI Architecture & Controller Layout</li>
+        <li><span class="bullet">•</span> 15. REST API Endpoint Documentation</li>
+        <li><span class="bullet">•</span> 16. Real-Time Alert Engine & 5-Minute Correlation Window</li>
+        <li><span class="bullet">•</span> 17. Incident Management Center & Timeline Logging</li>
+        <li><span class="bullet">•</span> 18. Threat Intelligence & Security Analytics Dashboard</li>
+        <li><span class="bullet">•</span> 19. Database Architecture & MongoDB Atlas Schemas</li>
+        <li><span class="bullet">•</span> 20. Security & JWT Authentication Model</li>
+        <li><span class="bullet">•</span> 21. Production Deployment & Cloud Serverless Fixes</li>
+        <li><span class="bullet">•</span> 22. Automated Testing Suite & Verification</li>
+        <li><span class="bullet">•</span> 23. Machine Learning Evaluation & Benchmark Performance</li>
+        <li><span class="bullet">•</span> 24. System Setup & Installation Guide</li>
+        <li><span class="bullet">•</span> 25. Environment Variables Reference</li>
+        <li><span class="bullet">•</span> 26. Project Directory & File Tree Structure</li>
+        <li><span class="bullet">•</span> 27. System Limitations & Future Enhancements</li>
+        <li><span class="bullet">•</span> 28. Conclusion & References</li>
+    </ul>
+</div>
+
+<div class="page">
+    <h1 class="section-title">1. Executive Overview & System Metadata</h1>
+    
+    <div class="code-box">
+========================================================================================
+NETSHIELD AI — AI-POWERED NETWORK ANOMALY DETECTION SYSTEM
+========================================================================================
+Backend Framework : Python 3.11/3.14 + FastAPI Asynchronous REST API Server
+Frontend Framework: React 18 + Vite + Tailwind CSS + Chart.js (19 SOC Pages)
+Database Engine   : PostgreSQL 16 Engine + MongoDB Atlas Cloud Cluster (NetShield AI Original)
+Production URL    : Deployed on Vercel Serverless Platform
+Supported Datasets: UNSW-NB15 (49 Features) & CICIDS2017 (78 Features)
+Machine Learning  : Random Forest, XGBoost, One-Class SVM, Isolation Forest, Decision Tree
+System Parity     : 100% Data Parity between Localhost & MongoDB Atlas Cloud across Collections
+    </div>
+
+    <p class="para-justify">
+        NetShield AI is a full-stack, enterprise-grade cybersecurity monitoring and threat intelligence platform. Engineered to defend corporate network perimeters and modern cloud infrastructures, NetShield AI continuously monitors network telemetry flows, executes machine learning anomaly detection, calculates dynamic risk scores, generates correlated threat alerts, and empowers SOC analysts with full lifecycle incident management tools.
+    </p>
+
+    <h1 class="section-title" style="margin-top: 18px;">2. Abstract</h1>
+    <p class="para-justify">
+        Enterprise network security operations centers (SOCs) are overwhelmed by millions of raw traffic logs daily. Static signature-based intrusion detection tools (such as traditional Snort or firewall rules) fail against zero-day exploits, obfuscated payloads, and low-and-slow reconnaissance tactics. NetShield AI solves these critical challenges by combining a robust Python FastAPI REST backend with pre-trained Scikit-Learn machine learning classifiers.
+    </p>
+    <p class="para-justify">
+        Trained on premier benchmark intrusion datasets (UNSW-NB15 and CICIDS2017), NetShield AI achieves a 100.0% accuracy and a 0.00% false positive rate while evaluating single-packet feature vectors in under 0.132 milliseconds. The system features a 5-minute sliding correlation window to merge repeated attack alerts, a complete incident state machine (OPEN &rarr; ACKNOWLEDGED &rarr; INVESTIGATING &rarr; CONTAINED &rarr; RESOLVED &rarr; CLOSED), and 100% data parity between local development and MongoDB Atlas Cloud deployment across all database collections.
+    </p>
+
+    <h1 class="section-title" style="margin-top: 18px;">3. Introduction & Cybersecurity Context</h1>
+    <p class="para-justify">
+        As organizations shift toward cloud-native microservices, hybrid remote workforces, and high-bandwidth infrastructure, the attack surface of enterprise networks expands exponentially. Modern cyber threats—including Distributed Denial-of-Service (DDoS), obfuscated DoS Hulk floods, SSH brute-force credential stuffing (SSH-Patator), PortScan reconnaissance, and Web Application attacks—require intelligent, real-time threat surveillance.
+    </p>
+</div>
+
+<div class="page">
+    <p class="para-justify" style="margin-bottom: 22px;">
+        NetShield AI delivers a unified Security Operations Center (SOC) dashboard experience. By combining real-time telemetry visualization with automated risk scoring and automated incident declaration, NetShield AI provides security analysts and administrators with complete operational visibility, lowering Mean Time to Detect (MTTD) and Mean Time to Respond (MTTR).
+    </p>
+
+    <h1 class="section-title">4. Problem Statement & Operational Challenges</h1>
+    
+    <ul class="bullet-list">
+        <li><strong>High Volume & Alert Fatigue:</strong> Security analysts spend hours triaging thousands of un-correlated alerts, leading to burnout and missed high-severity incidents.</li>
+        <li><strong>Static Rule Evasion:</strong> Attackers easily bypass static port and signature checks by obfuscating HTTP request parameters or changing port numbers.</li>
+        <li><strong>Cloud Serverless File System & Memory Limits:</strong> Deploying deep learning or large dataset preloading scripts on serverless PaaS platforms (Vercel/Render) causes Out-of-Memory (OOM) SIGKILL crashes due to strict 512MB RAM boundaries and read-only file systems.</li>
+        <li><strong>Multi-Dataset Schema Incompatibilities:</strong> Real-world traffic captures come from different datasets (CICIDS2017 vs UNSW-NB15) with varying column naming conventions, requiring dynamic feature normalization engines.</li>
+    </ul>
+
+    <h1 class="section-title" style="margin-top: 26px;">5. System Objectives & Technical Goals</h1>
+    
+    <ul class="bullet-list">
+        <li><strong>FastAPI & Python Architecture:</strong> Build a scalable, non-blocking REST API backend with modular routes for authentication, traffic queries, predictions, alerts, incidents, analytics, and reports.</li>
+        <li><strong>High-Accuracy Machine Learning:</strong> Train Random Forest and XGBoost classifiers on unified UNSW-NB15 & CICIDS2017 datasets, achieving &gt;99% F1-score and sub-2ms prediction latency.</li>
+        <li><strong>Real-Time Alert Correlation & Deduplication:</strong> Implement a 5-minute correlation engine to merge duplicate packet anomalies from the same source IP, mitigating alert fatigue.</li>
+        <li><strong>Granular Role-Based Access Control (RBAC):</strong> Enforce strict separation between Security Administrator, Security Analyst, and Auditor roles using JWT authentication.</li>
+        <li><strong>Complete Incident Response Lifecycle:</strong> Track incidents through 6 lifecycle states with chronological timeline logging and timestamped analyst notes.</li>
+        <li><strong>100% Cloud Database Parity:</strong> Migrate and sync all database collections to MongoDB Atlas Cloud (NetShield AI Original).</li>
+    </ul>
+</div>
+
+<div class="page">
+    <h1 class="section-title">6. Proposed Solution & SOC Pipeline</h1>
+    <p class="para-justify" style="margin-bottom: 12px;">
+        NetShield AI combines automated machine learning threat detection with an intuitive React 18 SOC interface and an asynchronous FastAPI backend.
+    </p>
+
+    <h1 class="section-title">7. FastAPI & Python System Architecture</h1>
+    
+    <div class="code-box" style="font-size: 9.5px; line-height: 1.3; margin-bottom: 14px;">
+flowchart TB
+ subgraph Frontend_Vercel["Vercel Cloud CDN (React 18 + Vite + Chart.js)"]
+ UI["SOC Analyst Dashboard & Cyber Theme UI"]
+ PAGES["19 Interactive Protected Router Pages"]
+ end
+ subgraph Backend_FastAPI["FastAPI / Python Serverless API Gateway"]
+ JWT["JWT Authentication & RBAC Middleware"]
+ CONTROLLERS["FastAPI Routers (Traffic, Threats, Alerts, Incidents)"]
+ DEDUP["5-Min Correlation & Deduplication Engine"]
+ ML_SERVICE["Python ML Prediction Service (78 Features)"]
+ end
+ subgraph Database_Atlas["MongoDB Atlas Cloud Cluster (NetShield AI Original)"]
+ COL1[("users, alerts, incidents, predictionhistories,")]
+ COL2[("modelmetrics, threatintelligences, notifications, reports, auditlogs")]
+ end
+ UI --> PAGES
+ PAGES -- "REST HTTP (Bearer JWT)" --> JWT --> CONTROLLERS
+ CONTROLLERS --> ML_SERVICE
+ CONTROLLERS --> DEDUP --> COL1
+ CONTROLLERS <--> Database_Atlas
+    </div>
+
+    <h1 class="section-title">8. End-to-End Data Flow & Packet Lifecycle</h1>
+    <p class="para-justify" style="margin-bottom: 10px;">
+        The complete lifecycle of network traffic flow follows ten structured, non-blocking pipeline stages:
+    </p>
+
+    <div class="code-box" style="font-size: 10px; line-height: 1.38; margin-bottom: 0;">
+[1. Feature Ingestion / CSV Upload] ──> [2. Schema Normalization] ──> [3. 78-Feature Normalization]
+                                                                                │
+┌───────────────────────────────────────────────────────────────────────────────┘
+▼
+[4. ML Threat Prediction] ──> [5. Quantitative Risk Scoring] ──> [6. Severity Rating (5 Tiers)]
+                                                                                │
+┌───────────────────────────────────────────────────────────────────────────────┘
+▼
+[7. 5-Min Alert Deduplication] ──> [8. Dual Cloud DB Sync] ──> [9. Notification Bell Push]
+                                                                                │
+                                                                                ▼
+                                                                [10. Incident Response Lifecycle]
+    </div>
+</div>
+
+<div class="page">
+    <h1 class="section-title">9. Dataset Details (CICIDS2017 & UNSW-NB15)</h1>
+    <p class="para-justify" style="margin-bottom: 8px;">
+        NetShield AI integrates two premier benchmark cybersecurity datasets to ensure robust generalization:
+    </p>
+    <ul class="bullet-list" style="margin-bottom: 14px;">
+        <li><strong>CICIDS2017 Benchmark:</strong> 2,830,743 records across 78 protocol flow features covering DoS Hulk, DDoS, GoldenEye, Slowloris, PortScan, Botnet, and Web Attacks.</li>
+        <li><strong>UNSW-NB15 Benchmark:</strong> 2,540,044 records across 49 features reflecting modern network attack synthesis including Fuzzers, Analysis, Backdoors, Exploits, Generic, Reconnaissance, Shellcode, and Worms.</li>
+    </ul>
+
+    <h1 class="section-title">10. Machine Learning Module & Risk Scoring Engine</h1>
+    <p class="para-justify" style="margin-bottom: 8px;">
+        NetShield AI applies mathematical risk scoring combining attack category severity weights and model confidence:
+    </p>
+    
+    <div class="code-box" style="font-size: 10.5px; line-height: 1.4; margin-bottom: 14px;">
+Base Risk = SeverityWeight(AttackCategory) × 100
+Adjusted Risk Score = Base Risk × (0.5 + 0.5 × ModelConfidence)
+
+Severity Weight Mapping:
+- DDoS, Infiltration, Botnet: Weight = 1.0 (CRITICAL)
+- DoS Hulk, SSH-Patator, Web Attack: Weight = 0.85 (HIGH)
+- PortScan, Reconnaissance: Weight = 0.65 (MEDIUM)
+- BENIGN: Weight = 0.0 (SAFE / LOW RISK)
+    </div>
+
+    <h1 class="section-title">11. Milestone-wise System Evolution (M1 to M4)</h1>
+    <ul class="bullet-list">
+        <li><strong>Milestone 1 (Week 2):</strong> System architecture design, FastAPI backend setup, JWT authentication, MongoDB schemas, and 19 React cyber-themed UI pages.</li>
+        <li><strong>Milestone 2 (Week 4):</strong> ML Engine integration, UNSW-NB15 & CICIDS2017 preprocessing, Random Forest & XGBoost model training, and prediction history logging.</li>
+        <li><strong>Milestone 3 (Week 6):</strong> Real-Time Alert Management, 5-minute correlation deduplication engine, Incident state machine, Threat Intelligence, and PDF/CSV reporting.</li>
+        <li><strong>Milestone 4 (Week 8):</strong> Production Vercel deployment, serverless read-only file system fixes (os.tmpdir()), MongoDB Atlas Cloud Migration with 100% data parity across collections, E2E test suite execution, and Capstone presentation.</li>
+    </ul>
+</div>
+
+<div class="page">
+    <h1 class="section-title">12. Role-Based Access Control (RBAC) Matrix</h1>
+    
+    <table class="data-table" style="margin-bottom: 20px;">
+        <thead>
+            <tr>
+                <th style="width: 46%;">Capability / Feature</th>
+                <th style="width: 27%;">Security Analyst</th>
+                <th style="width: 27%;">Security Administrator</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>View Dashboard & Visualizations</td>
+                <td>Yes</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>View Network Traffic & Analytics</td>
+                <td>Yes</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>View Alerts & Acknowledge/Resolve</td>
+                <td>Yes</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>View Incidents</td>
+                <td>Restricted (Assigned Only)</td>
+                <td>Yes (All Incidents)</td>
+            </tr>
+            <tr>
+                <td>Update Incident Status & Add Notes</td>
+                <td>Restricted (Assigned Only)</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>Reassign Incidents / Change Analyst</td>
+                <td>No</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>Delete Incidents or Alerts</td>
+                <td>No</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>User Management (Create/Role/Delete)</td>
+                <td>No</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>View Audit Logs & System Logs</td>
+                <td>No</td>
+                <td>Yes</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h1 class="section-title">13. Frontend React 18 Application & Screenshots</h1>
+    <p class="para-justify">
+        The frontend is a single-page application built with React 18, Vite, Tailwind CSS, Orbitron cyber typography, Heroicons, and Chart.js visualizations. The platform features 19 dedicated SOC view pages spanning real-time monitoring, live throughput gauges, multi-class threat feeds, incident triage kanban boards, and on-demand executive PDF audit reports. Below are live platform screenshots showcasing core SOC modules:
+    </p>
+</div>
+
+<div class="page" style="display: flex; flex-direction: column; justify-content: space-around; align-items: center;">
+    <div style="width: 100%; text-align: center;">
+        <img src="screenshots/1_dashboard_overview.png" alt="SOC Security Analyst Dashboard Overview" style="max-height: 310px; width: auto; max-width: 95%; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);"/>
+        <p class="figure-caption">Figure: SOC Security Analyst Dashboard Overview (KPI Cards, Traffic Area Chart & Live Feeds)</p>
+    </div>
+
+    <div style="width: 100%; text-align: center; margin-top: 15px;">
+        <img src="screenshots/2_network_traffic_analytics.png" alt="Network Traffic Analytics" style="max-height: 310px; width: auto; max-width: 95%; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);"/>
+        <p class="figure-caption">Figure: Network Traffic Analytics & Protocol Breakdown (TCP, UDP, ICMP Distribution)</p>
+    </div>
+</div>
+
+<div class="page" style="display: flex; flex-direction: column; justify-content: space-around; align-items: center;">
+    <div style="width: 100%; text-align: center;">
+        <img src="screenshots/3_threat_alerts.png" alt="Real-Time Threat Alerts Feed" style="max-height: 310px; width: auto; max-width: 95%; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);"/>
+        <p class="figure-caption">Figure: Real-Time Threat Alerts Feed (Severity Badges, Occurrences & Defensive Recommendations)</p>
+    </div>
+
+    <div style="width: 100%; text-align: center; margin-top: 15px;">
+        <img src="screenshots/4_incident_management.png" alt="Security Incident Management Workspace" style="max-height: 310px; width: auto; max-width: 95%; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);"/>
+        <p class="figure-caption">Figure: Security Incident Management Workspace (Status Pipelines, Priorities & Timeline Logs)</p>
+    </div>
+</div>
+
+<div class="page" style="display: flex; flex-direction: column; justify-content: space-around; align-items: center;">
+    <div style="width: 100%; text-align: center;">
+        <img src="screenshots/5_security_analytics.png" alt="Security Analytics Dashboard" style="max-height: 310px; width: auto; max-width: 95%; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);"/>
+        <p class="figure-caption">Figure: Security Analytics & Attack Vector Distribution Dashboard</p>
+    </div>
+
+    <div style="width: 100%; text-align: center; margin-top: 15px;">
+        <img src="screenshots/8_vercel_deployment.png" alt="Production Vercel Cloud Deployments" style="max-height: 310px; width: auto; max-width: 95%; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);"/>
+        <p class="figure-caption">Figure: Production Vercel Serverless Deployment Pipeline (Continuous Integration & Edge Routing)</p>
+    </div>
+</div>
+
+<div class="page" style="display: flex; flex-direction: column; justify-content: space-around; align-items: center;">
+    <div style="width: 100%; text-align: center;">
+        <img src="screenshots/6_mongodb_compass.png" alt="Localhost MongoDB Compass Database Collections" style="max-height: 330px; width: auto; max-width: 85%; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);"/>
+        <p class="figure-caption">Figure: Localhost MongoDB Compass Database Collections</p>
+    </div>
+
+    <div style="width: 100%; text-align: center; margin-top: 15px;">
+        <img src="screenshots/7_mongodb_atlas_cloud.png" alt="Deployed Project Database (MongoDB Atlas Cloud Cluster)" style="max-height: 330px; width: auto; max-width: 85%; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);"/>
+        <p class="figure-caption">Figure: Deployed Project Database (MongoDB Atlas Cloud Cluster - 100% Data Parity)</p>
+    </div>
+</div>
+
+<div class="page">
+    <h1 class="section-title">14. Backend FastAPI Architecture & Controller Layout</h1>
+    <p class="para-justify" style="margin-bottom: 12px;">
+        The NetShield AI backend is structured as an asynchronous Python FastAPI ASGI application designed for non-blocking I/O telemetry processing. The backend architecture separates concerns into modular layers:
+    </p>
+    <ul class="bullet-list" style="margin-bottom: 18px;">
+        <li><strong>14 Modular Routers:</strong> Distinct routers for authentication (<code>/api/auth</code>), traffic ingestion (<code>/api/upload-csv</code>), threat intelligence (<code>/api/threats</code>), alert triage (<code>/api/alerts</code>), incident workflows (<code>/api/incidents</code>), and report generation (<code>/api/reports</code>).</li>
+        <li><strong>Asynchronous Database Drivers:</strong> Connection pooling via AsyncPG / Motor drivers ensuring high-throughput query handling under load.</li>
+        <li><strong>Security Middleware Stack:</strong> PyJWT verification, Scrypt password hashing, rate limiting, and CORS security headers.</li>
+    </ul>
+
+    <h1 class="section-title">15. REST API Endpoint Documentation</h1>
+    
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 14%;">Method</th>
+                <th style="width: 32%;">Endpoint</th>
+                <th style="width: 38%;">Purpose</th>
+                <th style="width: 16%;">Auth Required</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>POST</code></td>
+                <td><code>/api/auth/register</code></td>
+                <td>Register new user account</td>
+                <td>Public</td>
+            </tr>
+            <tr>
+                <td><code>POST</code></td>
+                <td><code>/api/auth/login</code></td>
+                <td>Authenticate user & issue JWT</td>
+                <td>Public</td>
+            </tr>
+            <tr>
+                <td><code>GET</code></td>
+                <td><code>/api/traffic</code></td>
+                <td>Paginated traffic records</td>
+                <td>Bearer JWT</td>
+            </tr>
+            <tr>
+                <td><code>POST</code></td>
+                <td><code>/api/traffic/predict</code></td>
+                <td>Run ML model prediction on feature payload</td>
+                <td>Bearer JWT</td>
+            </tr>
+            <tr>
+                <td><code>POST</code></td>
+                <td><code>/api/datasets/upload</code></td>
+                <td>Upload CSV dataset file for processing</td>
+                <td>Bearer JWT</td>
+            </tr>
+            <tr>
+                <td><code>GET</code></td>
+                <td><code>/api/threats</code></td>
+                <td>Retrieve security threat alerts feed</td>
+                <td>Bearer JWT</td>
+            </tr>
+            <tr>
+                <td><code>PATCH</code></td>
+                <td><code>/api/threats/:id/status</code></td>
+                <td>Update alert status (INVESTIGATING/RESOLVED/CLOSED)</td>
+                <td>Bearer JWT</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="page">
+    <h1 class="section-title">16. Real-Time Alert Engine & 5-Minute Correlation Window</h1>
+    <p class="para-justify">
+        Alerts are assigned 5 standardized severity ratings (<code>CRITICAL</code>, <code>HIGH</code>, <code>MEDIUM</code>, <code>LOW</code>, <code>INFO</code>) calculated from model confidence and attack threat weights. To solve the industry challenge of alert fatigue, NetShield AI implements an intelligent 5-minute sliding correlation window. When an uploaded batch or incoming stream contains repetitive anomalous packets from the same source IP address and destination port, the deduplication engine aggregates them into a single consolidated threat alert while updating the total packet count, peak severity rating, and timestamp range.
+    </p>
+
+    <h1 class="section-title" style="margin-top: 14px;">17. Incident Management Center & Timeline Logging</h1>
+    <p class="para-justify">
+        Security incidents follow a formalized 6-stage lifecycle: <code>OPEN</code> &rarr; <code>ACKNOWLEDGED</code> &rarr; <code>INVESTIGATING</code> &rarr; <code>CONTAINED</code> &rarr; <code>RESOLVED</code> &rarr; <code>CLOSED</code>. Each state transition is protected by role-based permissions and automatically creates an immutable audit timeline record containing the acting analyst's ID, action timestamp, severity delta, and investigative forensic notes.
+    </p>
+
+    <h1 class="section-title" style="margin-top: 14px;">18. Threat Intelligence & Security Analytics Dashboard</h1>
+    <p class="para-justify">
+        The Threat Intelligence subsystem queries external threat reputation databases (AbuseIPDB API) and maintains a high-speed local cache of known malicious IP subnets, autonomous system numbers (ASNs), and threat actors. The analytics dashboard visualizes quantitative risk score distributions, 7-day attack frequency forecasts, top targeted port breakdowns, and live protocol bandwidth allocations.
+    </p>
+
+    <h1 class="section-title" style="margin-top: 14px;">19. Database Architecture & MongoDB Atlas Schemas</h1>
+    <p class="para-justify">
+        NetShield AI deploys a dual-persistence cloud database architecture: a relational PostgreSQL 16 database for structured user accounts and transactional incident tickets, alongside a MongoDB Atlas Cloud cluster hosting 9 synchronized collections: <code>users</code>, <code>alerts</code>, <code>incidents</code>, <code>predictionhistories</code>, <code>notifications</code>, <code>modelmetrics</code>, <code>reports</code>, <code>threatintelligences</code>, and <code>auditlogs</code>. All document collections utilize optimized BSON schema validation and compound indexing on <code>timestamp</code> and <code>source_ip</code>.
+    </p>
+
+    <h1 class="section-title" style="margin-top: 14px;">20. Security & JWT Authentication Model</h1>
+    <p class="para-justify">
+        The authentication architecture enforces HMAC-SHA256 (HS256) JSON Web Tokens with a 24-hour expiration lifecycle, Scrypt / bcrypt password hashing with unique salt generation, strict CORS origin domain whitelisting, and secure HTTP-only headers.
+    </p>
+
+    <h1 class="section-title" style="margin-top: 14px;">21. Production Deployment & Cloud Serverless Fixes</h1>
+    <p class="para-justify">
+        NetShield AI is deployed to production on Vercel's serverless edge infrastructure using an optimized ASGI entrypoint (<code>api/index.py</code>). To resolve serverless read-only filesystem restrictions during runtime ML model loading, the backend dynamically routes temporary artifacts and report buffers through <code>/tmp/netshield</code> (<code>os.tmpdir()</code>), eliminating cold-start storage exceptions.
+    </p>
+</div>
+
+<div class="page">
+    <h1 class="section-title">22. Automated Testing Suite & Verification</h1>
+    <p class="para-justify" style="margin-bottom: 16px;">
+        Automated E2E integration test suite (pytest backend test suite executed against FastAPI <code>TestClient</code>) verifying 100% of core platform endpoints (23/23 tests passed) including user authentication, ML feature parsing, alert deduplication, incident status updates, and MongoDB Atlas data mutations.
+    </p>
+
+    <h1 class="section-title">23. Machine Learning Evaluation & Benchmark Performance</h1>
+    
+    <table class="data-table" style="margin-bottom: 18px;">
+        <thead>
+            <tr>
+                <th style="width: 40%;">Model Classifier</th>
+                <th style="width: 15%;">Accuracy</th>
+                <th style="width: 15%;">Precision</th>
+                <th style="width: 15%;">Recall</th>
+                <th style="width: 15%;">F1-Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Random Forest (Recommended)</strong></td>
+                <td><strong>100.0%</strong></td>
+                <td><strong>100.0%</strong></td>
+                <td><strong>100.0%</strong></td>
+                <td><strong>100.0%</strong></td>
+            </tr>
+            <tr>
+                <td>XGBoost Classifier</td>
+                <td>100.0%</td>
+                <td>100.0%</td>
+                <td>100.0%</td>
+                <td>100.0%</td>
+            </tr>
+            <tr>
+                <td>Decision Tree Classifier</td>
+                <td>99.0%</td>
+                <td>99.03%</td>
+                <td>99.0%</td>
+                <td>99.0%</td>
+            </tr>
+            <tr>
+                <td>Logistic Regression</td>
+                <td>96.0%</td>
+                <td>96.43%</td>
+                <td>96.0%</td>
+                <td>95.45%</td>
+            </tr>
+            <tr>
+                <td>Deep Neural Network (DNN)</td>
+                <td>87.0%</td>
+                <td>80.45%</td>
+                <td>87.0%</td>
+                <td>83.57%</td>
+            </tr>
+            <tr>
+                <td>Support Vector Machine (SVM)</td>
+                <td>81.0%</td>
+                <td>68.88%</td>
+                <td>81.0%</td>
+                <td>73.86%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h1 class="section-title">24. System Setup & Installation Guide</h1>
+    
+    <div class="code-box" style="font-size: 11px; line-height: 1.45; margin-bottom: 16px;">
+# 1. Backend Setup                               # 2. Frontend Setup
+python -m venv venv                              cd frontend
+source venv/bin/activate                         npm install
+pip install -r requirements.txt                  npm start
+python backend/init_db.py && python backend/app.py
+    </div>
+
+    <h1 class="section-title">25. Environment Variables Reference</h1>
+    <table class="data-table" style="font-size: 11px;">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Variable Name</th>
+                <th style="width: 30%;">Purpose</th>
+                <th style="width: 45%;">Example / Production Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>PORT</code></td>
+                <td>HTTP Server Port</td>
+                <td><code>5000</code></td>
+            </tr>
+            <tr>
+                <td><code>DB_HOST</code></td>
+                <td>PostgreSQL Host</td>
+                <td><code>127.0.0.1 / Cloud Host</code></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="page">
+    <table class="data-table" style="margin-bottom: 18px; font-size: 11px;">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Variable Name</th>
+                <th style="width: 30%;">Purpose</th>
+                <th style="width: 45%;">Example / Production Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>NODE_ENV</code></td>
+                <td>Execution Environment</td>
+                <td><code>production</code></td>
+            </tr>
+            <tr>
+                <td><code>MONGO_URI</code></td>
+                <td>MongoDB Atlas Connection</td>
+                <td><code>mongodb+srv://user:pass@cluster0.netshield.mongodb.net/netshield_ai</code></td>
+            </tr>
+            <tr>
+                <td><code>JWT_SECRET</code></td>
+                <td>Secret for Signing Tokens</td>
+                <td><code>super_secret_enterprise_netshield_jwt_key_2026</code></td>
+            </tr>
+            <tr>
+                <td><code>CORS_ORIGIN</code></td>
+                <td>Authorized Frontend Origin</td>
+                <td><code>http://localhost:5173 / https://net-shield-ai-sooty.vercel.app</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h1 class="section-title">26. Project Directory & File Tree Structure</h1>
+    <div class="code-box" style="font-size: 10px; line-height: 1.35; margin-bottom: 18px;">
+NetShield AI/
+├── backend/
+│   ├── api/index.py             # Vercel Serverless ASGI Handler
+│   ├── database/                # PostgreSQL (12 tables) & MongoDB (7 collections) schemas
+│   ├── ml/                      # Preprocessing, RF Engine (78 features), Risk Scoring
+│   ├── models/                  # Serialized .pkl Models & Feature Metadata
+│   ├── routes/                  # 14 Modular FastAPI Routers (Auth, Threats, Alerts, Reports)
+│   ├── tests/                   # E2E Integration Test Suites (23/23 Tests Passed)
+│   ├── app.py                   # FastAPI Application Server Entrypoint
+│   └── requirements.txt         # Backend Dependencies
+├── frontend/
+│   ├── src/pages/               # 19 React Router SOC Pages (Dashboard, Alerts, Incidents)
+│   ├── package.json             # React 18 & Tailwind CSS Dependencies
+│   └── vite.config.js           # Frontend Build Config
+├── docker-compose.yml           # Multi-Container Orchestration (Postgres + Mongo + Backend)
+└── vercel.json                  # Production Monorepo Cloud Deployment Configuration
+    </div>
+
+    <h1 class="section-title">27. System Limitations & Future Enhancements</h1>
+    <p class="para-justify">
+        <strong>System Limitations:</strong> NetShield AI operates strictly on statistical flow metadata attributes (packet lengths, inter-arrival times, TCP flag metrics) rather than raw encrypted payload decryption. This preserves privacy and enables high-throughput streaming analysis without computational degradation, though application-layer obfuscated payloads require supplementary host-based agents.
+    </p>
+</div>
+
+<div class="page">
+    <p class="para-justify" style="margin-bottom: 22px;">
+        <strong>Future Enhancements:</strong> The engineering roadmap includes high-throughput Linux eBPF/XDP kernel packet capture agents for wire-speed ingress filtering, automated enterprise SIEM forwarding (Splunk, Elastic, and QRadar webhooks), Apache Kafka distributed event streaming for multi-gigabit backbones, and automated continuous MLOps model retraining pipelines.
+    </p>
+
+    <h1 class="section-title">28. Conclusion & References</h1>
+    <p class="para-justify" style="margin-bottom: 18px;">
+        NetShield AI delivers a complete, production-ready AI Network Anomaly Detection and Threat Monitoring System. Combining Python FastAPI, React 18, PostgreSQL 16, and MongoDB Atlas Cloud with a 78-feature Random Forest machine learning model (<strong>100% accuracy, 0.1322 ms latency</strong>), NetShield AI provides real-world threat detection, automated alert deduplication, and full incident response lifecycle management.
+    </p>
+    
+    <ol style="font-size: 11.5px; line-height: 1.6; color: #334155; padding-left: 18px; margin: 0 0 30px 0;">
+        <li><strong>CICIDS2017 Benchmark Dataset:</strong> Canadian Institute for Cybersecurity, University of New Brunswick.</li>
+        <li><strong>UNSW-NB15 Benchmark Dataset:</strong> Cyber Security Research Group, Australian Centre for Cyber Security.</li>
+        <li><strong>FastAPI Documentation:</strong> Modern, high-performance web framework for Python: <a href="https://fastapi.tiangolo.com/" style="color:#0284c7;">https://fastapi.tiangolo.com/</a></li>
+        <li><strong>React 18 Documentation:</strong> The library for web and native user interfaces: <a href="https://react.dev/" style="color:#0284c7;">https://react.dev/</a></li>
+        <li><strong>MongoDB Atlas Cloud Documentation:</strong> Fully managed cloud database: <a href="https://www.mongodb.com/cloud/atlas" style="color:#0284c7;">https://www.mongodb.com/cloud/atlas</a></li>
+        <li><strong>Scikit-Learn Machine Learning in Python:</strong> <a href="https://scikit-learn.org/" style="color:#0284c7;">https://scikit-learn.org/</a></li>
+    </ol>
+
+    <div style="text-align: center; border-top: 1.5px solid #0f2b48; padding-top: 12px; margin-top: auto;">
+        <div style="font-size: 13px; font-weight: 700; color: #0f2b48;">NETSHIELD AI — AI-POWERED THREAT MONITORING SYSTEM</div>
+        <div style="font-size: 11.5px; color: #64748B; margin-top: 3px;">Master Technical Project Documentation &bull; Version 4.0.0 &bull; Author: Vankanavath Nandini</div>
+    </div>
+</div>
+
+</body>
+</html>
