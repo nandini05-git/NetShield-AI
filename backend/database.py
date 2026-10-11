@@ -97,18 +97,12 @@ def init_db_pool():
 
     candidates = []
     if Config.DB_HOST:
-        candidates.append(Config.DB_HOST)
-        # Only try Render domain guessing if on Render and host is just an id without a dot
-        if '.' not in Config.DB_HOST and Config.DB_HOST not in ("127.0.0.1", "localhost") and not os.getenv('VERCEL'):
-            for region in [
-                "oregon-postgres.render.com",
-                "frankfurt-postgres.render.com",
-                "singapore-postgres.render.com",
-                "ohio-postgres.render.com",
-                "virginia-postgres.render.com"
-            ]:
-                candidates.append(f"{Config.DB_HOST}.{region}")
-                
+        if 'render.com' not in Config.DB_HOST and not Config.DB_HOST.startswith('dpg-'):
+            candidates.append(Config.DB_HOST)
+
+    if "aws-0-ap-southeast-2.pooler.supabase.com" not in candidates:
+        candidates.append("aws-0-ap-southeast-2.pooler.supabase.com")
+        
     if not os.getenv('VERCEL') and "127.0.0.1" not in candidates:
         candidates.append("127.0.0.1")
         
@@ -160,7 +154,9 @@ def get_db_connection():
             return db_pool.getconn()
         except Exception as e:
             logger.error(f"Error getting connection from PostgreSQL pool: {str(e)}")
-            for h in [Config.DB_HOST, "127.0.0.1"]:
+            for h in [Config.DB_HOST, "aws-0-ap-southeast-2.pooler.supabase.com"]:
+                if not h or 'render.com' in h or h.startswith('dpg-'):
+                    continue
                 try:
                     kwargs = {
                         'host': h,

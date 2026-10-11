@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, '.env'), override=False)
 
+SUPABASE_DEFAULT_URL = "postgresql://postgres.wqbdjmdksttvufaknsaa:6n9zwJX96j0K3x8v@aws-0-ap-southeast-2.pooler.supabase.com:5432/postgres"
+
 def _safe_int(val, default=5432):
     try:
         s = str(val).strip()
@@ -12,41 +14,61 @@ def _safe_int(val, default=5432):
     except Exception:
         return default
 
+def _is_serverless_env():
+    if os.getenv('VERCEL') or os.getenv('VERCEL_ENV') or os.getenv('AWS_LAMBDA_FUNCTION_NAME') or os.getenv('LAMBDA_TASK_ROOT'):
+        return True
+    if '/var/task' in os.path.abspath(__file__):
+        return True
+    return False
+
 def _parse_db_env():
-    # Priority:
-    # 1. Explicit individual POSTGRES_HOST / DB_HOST if not localhost
-    # 2. EXTERNAL_DATABASE_URL / DATABASE_URL / POSTGRES_URL
-    # 3. INTERNAL_DATABASE_URL
-    explicit_host = os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST')
+    serverless = _is_serverless_env()
+    explicit_host = (os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST') or '').strip()
     
     db_url = (
-        os.getenv('EXTERNAL_DATABASE_URL') or 
+        os.getenv('SUPABASE_DB_URL') or
         os.getenv('DATABASE_URL') or 
+        os.getenv('EXTERNAL_DATABASE_URL') or 
         os.getenv('POSTGRES_URL') or 
         os.getenv('POSTGRESQL_URL') or 
         ''
-    )
+    ).strip()
     
     # If explicit host was provided as a full connection string:
     if explicit_host and (explicit_host.startswith('postgresql://') or explicit_host.startswith('postgres://')):
         db_url = explicit_host
-        explicit_host = None
+        explicit_host = ''
 
-    parsed_host = '127.0.0.1'
+    # Filter out dead / expired Render instances (causes SSL closed unexpectedly)
+    if db_url and ('render.com' in db_url or 'dpg-' in db_url):
+        db_url = ''
+    if explicit_host and ('render.com' in explicit_host or explicit_host.startswith('dpg-')):
+        explicit_host = ''
+
+    # If running on serverless (Vercel) without a working database URL, default to Supabase
+    if serverless:
+        if not db_url:
+            if not explicit_host or explicit_host in ('127.0.0.1', 'localhost', 'postgresql'):
+                db_url = SUPABASE_DEFAULT_URL
+    else:
+        if not db_url and not explicit_host:
+            db_url = SUPABASE_DEFAULT_URL
+
+    parsed_host = 'aws-0-ap-southeast-2.pooler.supabase.com'
     parsed_port = 5432
-    parsed_user = 'postgres'
-    parsed_pass = 'postgres'
-    parsed_name = 'netshield_ai'
+    parsed_user = 'postgres.wqbdjmdksttvufaknsaa'
+    parsed_pass = '6n9zwJX96j0K3x8v'
+    parsed_name = 'postgres'
     parsed_ssl = os.getenv('POSTGRES_SSLMODE')
 
     if db_url and (db_url.startswith('postgresql://') or db_url.startswith('postgres://')):
         try:
             from urllib.parse import unquote
             res = urlparse(db_url)
-            parsed_host = res.hostname or '127.0.0.1'
+            parsed_host = res.hostname or 'aws-0-ap-southeast-2.pooler.supabase.com'
             parsed_port = res.port or 5432
-            parsed_user = unquote(res.username or 'postgres')
-            parsed_pass = unquote(res.password or '')
+            parsed_user = unquote(res.username or 'postgres.wqbdjmdksttvufaknsaa')
+            parsed_pass = unquote(res.password or '6n9zwJX96j0K3x8v')
             parsed_name = res.path.lstrip('/') if res.path else 'postgres'
             if res.query and 'sslmode=' in res.query:
                 import urllib.parse
@@ -63,21 +85,24 @@ def _parse_db_env():
         parsed_name = os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'netshield_ai'))
     elif os.getenv('INTERNAL_DATABASE_URL'):
         int_url = os.getenv('INTERNAL_DATABASE_URL')
-        try:
-            res = urlparse(int_url)
-            parsed_host = res.hostname or '127.0.0.1'
-            parsed_port = res.port or 5432
-            parsed_user = res.username or 'postgres'
-            parsed_pass = res.password or ''
-            parsed_name = res.path.lstrip('/') if res.path else 'netshield_ai'
-        except Exception:
-            pass
+        if 'render.com' not in int_url and 'dpg-' not in int_url:
+            try:
+                res = urlparse(int_url)
+                parsed_host = res.hostname or '127.0.0.1'
+                parsed_port = res.port or 5432
+                parsed_user = res.username or 'postgres'
+                parsed_pass = res.password or ''
+                parsed_name = res.path.lstrip('/') if res.path else 'netshield_ai'
+            except Exception:
+                pass
 
-    # If the hostname is a Render internal ID without domain on external/serverless environment:
-    # (e.g. "dpg-dah1oim1egvs73c6s1mg-a" without any domain suffix)
-    if parsed_host and '.' not in parsed_host and parsed_host not in ('127.0.0.1', 'localhost'):
-        if parsed_host.startswith('dpg-'):
-            parsed_host = f"{parsed_host}.oregon-postgres.render.com"
+    # Extra guarantee: If parsed_host is Render, override to Supabase
+    if 'render.com' in parsed_host or parsed_host.startswith('dpg-'):
+        parsed_host = 'aws-0-ap-southeast-2.pooler.supabase.com'
+        parsed_port = 5432
+        parsed_user = 'postgres.wqbdjmdksttvufaknsaa'
+        parsed_pass = '6n9zwJX96j0K3x8v'
+        parsed_name = 'postgres'
 
     # Default SSL mode for external cloud PostgreSQL
     if not parsed_ssl:
@@ -89,14 +114,6 @@ def _parse_db_env():
     return parsed_host, parsed_port, parsed_user, parsed_pass, parsed_name, parsed_ssl
 
 _parsed_host, _parsed_port, _parsed_user, _parsed_pass, _parsed_name, _parsed_ssl = _parse_db_env()
-
-def _is_serverless_env():
-    if os.getenv('VERCEL') or os.getenv('VERCEL_ENV') or os.getenv('AWS_LAMBDA_FUNCTION_NAME') or os.getenv('LAMBDA_TASK_ROOT'):
-        return True
-    if '/var/task' in os.path.abspath(__file__):
-        return True
-    return False
-
 is_serverless = _is_serverless_env()
 tmp_writable = '/tmp/netshield' if is_serverless else BASE_DIR
 

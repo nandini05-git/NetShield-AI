@@ -91,6 +91,12 @@ def load_ml_model():
         model_feature_names = None
         return False
 
+# Eagerly load model on import
+try:
+    load_ml_model()
+except Exception:
+    pass
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

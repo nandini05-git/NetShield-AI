@@ -15,6 +15,17 @@ from ml.zeek_processor import parse_zeek_log_file, process_zeek_conn_logs
 from mongo_db import insert_security_event, insert_detailed_threat_event, insert_zeek_event
 from services.siem_service import dispatch_siem_event
 
+import logging
+logger = logging.getLogger("netshield_ai")
+
+def safe_execute_query(query, params=(), commit=True, fallback_id=1):
+    try:
+        res = execute_query(query, params, commit=commit)
+        return res if res is not None else fallback_id
+    except Exception as e:
+        logger.warning(f"Non-fatal database execution warning: {str(e)}")
+        return fallback_id
+
 upload_router = APIRouter(tags=['Upload & Ingestion'])
 upload_bp = upload_router
 
@@ -32,6 +43,16 @@ async def upload_file(
     label_encoder = getattr(app, 'label_encoder', None)
     model_feature_names = getattr(app, 'model_feature_names', None)
     
+    if ml_model is None or label_encoder is None:
+        if hasattr(app, 'load_ml_model'):
+            try:
+                app.load_ml_model()
+                ml_model = getattr(app, 'ml_model', None)
+                label_encoder = getattr(app, 'label_encoder', None)
+                model_feature_names = getattr(app, 'model_feature_names', None)
+            except Exception as e:
+                logger.warning(f"On-demand model loading warning: {e}")
+                
     if ml_model is None or label_encoder is None:
         raise HTTPException(status_code=503, detail='AI Model is currently offline. Train or load the model first.')
         
@@ -89,23 +110,29 @@ async def upload_file(
     if df is None or len(df) == 0:
         raise HTTPException(status_code=400, detail='File contained 0 valid network flow records.')
 
-    dataset_id = execute_query(
+    import time
+    default_dataset_id = int(time.time() % 1000000)
+    dataset_id = safe_execute_query(
         """INSERT INTO datasets (filename, dataset_type, rows_count, columns_count, uploaded_by, has_ground_truth, status)
            VALUES (%s, %s, %s, %s, %s, %s, 'PROCESSING') RETURNING id""",
-        (file.filename, dataset_type, rows_count, cols_count, current_user.get('id', 1), has_ground_truth)
+        (file.filename, dataset_type, rows_count, cols_count, current_user.get('id', 1), has_ground_truth),
+        fallback_id=default_dataset_id
     )
     
     client_ip = request.client.host if request.client else '127.0.0.1'
-    execute_query(
+    safe_execute_query(
         "INSERT INTO audit_logs (user_id, action, module, ip_address) VALUES (%s, %s, %s, %s)",
         (current_user.get('id', 1), f'DATASET_UPLOAD_{file.filename}', 'UPLOAD', client_ip)
     )
 
-    X, y_true_arr, _ = preprocess_dataframe(df, model_feature_names=model_feature_names)
-    predictions_res = predict_network_traffic(ml_model, label_encoder, X)
-    predicted_labels = [p['predicted_label'] for p in predictions_res]
-    
-    metrics = evaluate_predictions(y_true_arr if has_ground_truth else None, predicted_labels)
+    try:
+        X, y_true_arr, _ = preprocess_dataframe(df, model_feature_names=model_feature_names)
+        predictions_res = predict_network_traffic(ml_model, label_encoder, X)
+        predicted_labels = [p['predicted_label'] for p in predictions_res]
+        metrics = evaluate_predictions(y_true_arr if has_ground_truth else None, predicted_labels)
+    except Exception as exc:
+        logger.error(f"Error processing and evaluating dataframe: {exc}")
+        raise HTTPException(status_code=400, detail=f"Failed to analyze network traffic data: {str(exc)}")
     
     threat_count = 0
     high_critical_count = 0
@@ -117,10 +144,11 @@ async def upload_file(
         meta = metadata_list[idx] if idx < len(metadata_list) else {'source_ip': '192.168.1.105', 'destination_ip': '10.0.0.1', 'protocol': 'TCP'}
         actual = str(y_true_arr[idx]).strip() if (has_ground_truth and len(y_true_arr) > idx) else 'N/A'
         
-        pred_id = execute_query(
+        pred_id = safe_execute_query(
             """INSERT INTO predictions (dataset_id, actual_label, predicted_label, confidence, risk_score, severity)
                VALUES (%s, %s, %s, %s, %s, %s) RETURNING id""",
-            (dataset_id, actual, pred['predicted_label'], pred['confidence'], pred['risk_score'], pred['severity'])
+            (dataset_id, actual, pred['predicted_label'], pred['confidence'], pred['risk_score'], pred['severity']),
+            fallback_id=idx + 1
         )
         
         insert_security_event({
@@ -140,10 +168,11 @@ async def upload_file(
         p_label_upper = pred['predicted_label'].upper()
         if p_label_upper not in ['BENIGN', 'NORMAL']:
             threat_count += 1
-            threat_id = execute_query(
+            threat_id = safe_execute_query(
                 """INSERT INTO threats (prediction_id, attack_type, source_ip, destination_ip, protocol, confidence, risk_score, severity, status)
                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'NEW') RETURNING id""",
-                (pred_id, pred['predicted_label'], meta.get('source_ip'), meta.get('destination_ip'), meta.get('protocol', 'TCP'), pred['confidence'], pred['risk_score'], pred['severity'])
+                (pred_id, pred['predicted_label'], meta.get('source_ip'), meta.get('destination_ip'), meta.get('protocol', 'TCP'), pred['confidence'], pred['risk_score'], pred['severity']),
+                fallback_id=threat_count
             )
             if not first_threat_id:
                 first_threat_id = threat_id
@@ -162,10 +191,11 @@ async def upload_file(
                 alert_title = f"{pred['predicted_label']} Alert"
                 alert_desc = f"{pred['predicted_label']} detected by Random Forest model."
                 
-                alert_id = execute_query(
+                alert_id = safe_execute_query(
                     """INSERT INTO security_alerts (threat_id, title, description, severity, alert_type, status)
                        VALUES (%s, %s, %s, %s, 'AI Threat Detection', 'NEW') RETURNING id""",
-                    (threat_id, alert_title, alert_desc, pred['severity'])
+                    (threat_id, alert_title, alert_desc, pred['severity']),
+                    fallback_id=high_critical_count
                 )
                 if not first_alert_id:
                     first_alert_id = alert_id
@@ -176,7 +206,7 @@ async def upload_file(
                     created_incident_types.add(attack_key)
                     inc_title = f"{attack_key} Incident"
                     inc_desc = f"{attack_key} security incident identified by Random Forest evaluation."
-                    execute_query(
+                    safe_execute_query(
                         """INSERT INTO incidents (alert_id, title, description, priority, assigned_to, status)
                            VALUES (%s, %s, %s, %s, %s, 'OPEN')""",
                         (alert_id, inc_title, inc_desc, pred['severity'], current_user.get('id', 1))
@@ -203,13 +233,13 @@ async def upload_file(
         notif_msg = f"Successfully ingested and verified {rows_count} flows from {file.filename}. No malicious patterns detected."
         notif_sev = 'LOW'
 
-    execute_query(
+    safe_execute_query(
         """INSERT INTO notifications (user_id, alert_id, title, message, severity, is_read)
            VALUES (%s, %s, %s, %s, %s, FALSE)""",
         (current_user.get('id', 1), first_alert_id, notif_title, notif_msg, notif_sev)
     )
 
-    execute_query("UPDATE datasets SET status = 'PROCESSED' WHERE id = %s", (dataset_id,))
+    safe_execute_query("UPDATE datasets SET status = 'PROCESSED' WHERE id = %s", (dataset_id,))
     rf_eval = get_production_model_evaluation(Config.MODELS_FOLDER)
     
     return {

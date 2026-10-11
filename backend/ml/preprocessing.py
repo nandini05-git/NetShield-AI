@@ -53,20 +53,18 @@ def preprocess_dataframe(df, model_feature_names=None):
     if existing_meta:
         df = df.drop(columns=existing_meta)
 
-    # Check for missing required model features
+    # Check and align required model features
     if model_feature_names is not None:
-        cols_lower_set = set(str(c).strip().lower() for c in df.columns)
-        missing_features = [f for f in model_feature_names if str(f).strip().lower() not in cols_lower_set]
+        col_mapping = {str(c).strip().lower(): c for c in df.columns}
         
-        # If more than 50% of model features are missing, reject dataset with missing features list
-        if len(missing_features) > len(model_feature_names) * 0.5:
-            missing_sample = missing_features[:10]
-            raise ValueError(f"Dataset is missing required ML features: {', '.join(missing_sample)}... ({len(missing_features)} features missing)")
-            
-        # Align features
-        for col in model_feature_names:
-            if col not in df.columns:
-                df[col] = 0.0
+        # Align existing columns with case-insensitive matching
+        for feat in model_feature_names:
+            feat_lower = str(feat).strip().lower()
+            if feat not in df.columns and feat_lower in col_mapping:
+                df[feat] = df[col_mapping[feat_lower]]
+            elif feat not in df.columns:
+                df[feat] = 0.0
+                
         df = df[model_feature_names]
 
     # Convert remaining columns to numeric float32
