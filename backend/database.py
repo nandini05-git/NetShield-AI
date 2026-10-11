@@ -24,11 +24,16 @@ def _clean_postgres_query(query: str, params=()) -> str:
         
     return q
 
+_last_db_init_attempt = 0
+_DB_INIT_COOLDOWN_SEC = 30
+
 def _try_create_pool(host):
-    timeout_sec = int(os.getenv('POSTGRES_TIMEOUT', 10))
+    is_serverless = bool(os.getenv('VERCEL') or os.getenv('VERCEL_ENV') or os.getenv('AWS_LAMBDA_FUNCTION_NAME'))
+    default_timeout = 4 if is_serverless else 10
+    timeout_sec = int(os.getenv('POSTGRES_TIMEOUT', default_timeout))
     kwargs = {
         'minconn': 1,
-        'maxconn': 10 if os.getenv('VERCEL') else 20,
+        'maxconn': 5 if is_serverless else 20,
         'host': host,
         'port': Config.DB_PORT,
         'user': Config.DB_USER,
@@ -81,12 +86,20 @@ def init_postgres_tables():
         put_db_connection(conn)
 
 def init_db_pool():
-    global db_pool
+    global db_pool, _last_db_init_attempt
+    import time
+    now = time.time()
+    if db_pool is not None:
+        return True
+    if now - _last_db_init_attempt < _DB_INIT_COOLDOWN_SEC:
+        return False
+    _last_db_init_attempt = now
+
     candidates = []
-    
     if Config.DB_HOST:
         candidates.append(Config.DB_HOST)
-        if '.' not in Config.DB_HOST and Config.DB_HOST not in ("127.0.0.1", "localhost"):
+        # Only try Render domain guessing if on Render and host is just an id without a dot
+        if '.' not in Config.DB_HOST and Config.DB_HOST not in ("127.0.0.1", "localhost") and not os.getenv('VERCEL'):
             for region in [
                 "oregon-postgres.render.com",
                 "frankfurt-postgres.render.com",

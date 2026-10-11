@@ -65,9 +65,12 @@ def load_ml_model():
         return False
 
     try:
-        ml_model = joblib.load(model_path)
-        label_encoder = joblib.load(label_encoder_path)
-        model_feature_names = joblib.load(feature_path)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            ml_model = joblib.load(model_path)
+            label_encoder = joblib.load(label_encoder_path)
+            model_feature_names = joblib.load(feature_path)
 
         logger.info(
             "MODEL ACTIVE: Random Forest model loaded successfully from %s "

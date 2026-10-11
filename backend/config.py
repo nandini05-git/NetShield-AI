@@ -39,20 +39,15 @@ def _parse_db_env():
     parsed_name = 'netshield_ai'
     parsed_ssl = os.getenv('POSTGRES_SSLMODE')
 
-    if explicit_host:
-        parsed_host = explicit_host
-        parsed_port = _safe_int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', 5432)), 5432)
-        parsed_user = os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'postgres'))
-        parsed_pass = os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', 'postgres'))
-        parsed_name = os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'netshield_ai'))
-    elif db_url and (db_url.startswith('postgresql://') or db_url.startswith('postgres://')):
+    if db_url and (db_url.startswith('postgresql://') or db_url.startswith('postgres://')):
         try:
+            from urllib.parse import unquote
             res = urlparse(db_url)
             parsed_host = res.hostname or '127.0.0.1'
             parsed_port = res.port or 5432
-            parsed_user = res.username or 'postgres'
-            parsed_pass = res.password or ''
-            parsed_name = res.path.lstrip('/') if res.path else 'netshield_ai'
+            parsed_user = unquote(res.username or 'postgres')
+            parsed_pass = unquote(res.password or '')
+            parsed_name = res.path.lstrip('/') if res.path else 'postgres'
             if res.query and 'sslmode=' in res.query:
                 import urllib.parse
                 qs = urllib.parse.parse_qs(res.query)
@@ -60,6 +55,12 @@ def _parse_db_env():
                     parsed_ssl = qs['sslmode'][0]
         except Exception:
             pass
+    elif explicit_host:
+        parsed_host = explicit_host
+        parsed_port = _safe_int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', 5432)), 5432)
+        parsed_user = os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'postgres'))
+        parsed_pass = os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', 'postgres'))
+        parsed_name = os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'netshield_ai'))
     elif os.getenv('INTERNAL_DATABASE_URL'):
         int_url = os.getenv('INTERNAL_DATABASE_URL')
         try:
