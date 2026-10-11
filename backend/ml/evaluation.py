@@ -176,6 +176,8 @@ def get_production_model_evaluation(models_dir=None):
             FROM predictions
             WHERE actual_label IS NOT NULL
               AND actual_label NOT IN ('N/A', 'None', '', 'NaN', 'null')
+            ORDER BY id DESC
+            LIMIT 200
         """)
         if pred_rows and len(pred_rows) > 0:
             y_t = [r['actual_label'] for r in pred_rows]

@@ -21,8 +21,15 @@ def init_mongo():
     if _mongo_checked and mongo_db is not None:
         return True
     try:
-        timeout_ms = getattr(Config, 'MONGO_TIMEOUT_MS', 5000)
-        kwargs = {'serverSelectionTimeoutMS': timeout_ms}
+        try:
+            timeout_ms = min(int(getattr(Config, 'MONGO_TIMEOUT_MS', 2000)), 2500)
+        except Exception:
+            timeout_ms = 2000
+        kwargs = {
+            'serverSelectionTimeoutMS': timeout_ms,
+            'connectTimeoutMS': timeout_ms,
+            'socketTimeoutMS': timeout_ms + 1000
+        }
         if '+srv://' in Config.MONGO_URI or 'tls=true' in Config.MONGO_URI.lower() or 'ssl=true' in Config.MONGO_URI.lower():
             kwargs['tls'] = True
             if ca_file:
@@ -83,6 +90,20 @@ def insert_security_event(event_dict):
             logger.error(f'Error inserting security event into MongoDB: {str(e)}')
     return None
 
+def insert_security_events_batch(events_list):
+    db = get_mongo_db()
+    if db is not None and events_list:
+        try:
+            now = datetime.utcnow()
+            for ev in events_list:
+                if 'timestamp' not in ev:
+                    ev['timestamp'] = now
+            res = db.network_security_events.insert_many(events_list, ordered=False)
+            return [str(_id) for _id in res.inserted_ids]
+        except Exception as e:
+            logger.warning(f'Error batch inserting security events into MongoDB: {str(e)}')
+    return []
+
 def insert_detailed_threat_event(threat_dict):
     db = get_mongo_db()
     if db is not None:
@@ -94,6 +115,20 @@ def insert_detailed_threat_event(threat_dict):
         except Exception as e:
             logger.error(f'Error inserting detailed threat event into MongoDB: {str(e)}')
     return None
+
+def insert_detailed_threat_events_batch(threats_list):
+    db = get_mongo_db()
+    if db is not None and threats_list:
+        try:
+            now = datetime.utcnow()
+            for th in threats_list:
+                if 'detected_at' not in th:
+                    th['detected_at'] = now
+            res = db.detailed_threat_events.insert_many(threats_list, ordered=False)
+            return [str(_id) for _id in res.inserted_ids]
+        except Exception as e:
+            logger.warning(f'Error batch inserting detailed threats into MongoDB: {str(e)}')
+    return []
 
 def insert_zeek_event(zeek_dict):
     db = get_mongo_db()

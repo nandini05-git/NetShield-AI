@@ -217,6 +217,37 @@ def execute_query(query, params=(), commit=True):
     finally:
         put_db_connection(conn)
 
+def execute_values_batch(query_template, args_list, fetch_ids=False):
+    """
+    High-performance batch multi-row insert using psycopg2.extras.execute_values.
+    Executes hundreds or thousands of row inserts in a single round trip.
+    """
+    if not args_list:
+        return []
+    conn = get_db_connection()
+    if not conn:
+        return []
+    try:
+        with conn.cursor() as cursor:
+            sql = query_template
+            if fetch_ids and "RETURNING" not in sql.upper():
+                sql = sql.rstrip("; ") + " RETURNING id"
+            if fetch_ids:
+                res = extras.execute_values(cursor, sql, args_list, fetch=True)
+                conn.commit()
+                return [r[0] for r in res] if res else []
+            else:
+                extras.execute_values(cursor, sql, args_list)
+                conn.commit()
+                return []
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        logger.error(f"PostgreSQL batch insert error: {str(e)}")
+        return []
+    finally:
+        put_db_connection(conn)
+
 def fetch_one(query, params=()):
     query = _clean_postgres_query(query, params)
     conn = get_db_connection()
